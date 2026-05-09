@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { ActiveProjects } from "../components/dashboard/ActiveProjects";
 import { OverviewCards } from "../components/dashboard/OverviewCards";
 import { AppHeader } from "../components/navigation/AppHeader";
 import { Sidebar } from "../components/navigation/Sidebar";
@@ -16,6 +17,7 @@ export function AppLayout() {
             <WorkspaceStatus>今天先從專案狀態與待辦摘要開始。</WorkspaceStatus>
           </DashboardIntro>
           <OverviewCards />
+          <ActiveProjects />
         </MainContent>
       </ContentArea>
     </LayoutShell>
