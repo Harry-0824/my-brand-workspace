@@ -1,0 +1,140 @@
+import styled from "styled-components";
+
+export function AppHeader() {
+  return (
+    <HeaderShell>
+      <TitleGroup>
+        <PageTitle>儀表板</PageTitle>
+      </TitleGroup>
+
+      <HeaderActions>
+        <SearchLabel>
+          <SearchIcon aria-hidden="true" />
+          <SearchInput type="search" placeholder="搜尋專案、任務或客戶..." />
+        </SearchLabel>
+        <CreateButton type="button">新增</CreateButton>
+        <NotificationIcon aria-label="通知" role="img" />
+        <UserBadge aria-label="目前使用者 Harry">Harry</UserBadge>
+      </HeaderActions>
+    </HeaderShell>
+  );
+}
+
+const HeaderShell = styled.header`
+  min-height: 5.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.xl};
+  padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.xxl};
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  background: rgb(16 23 33 / 0.86);
+  backdrop-filter: blur(18px);
+`;
+
+const TitleGroup = styled.div`
+  min-width: 0;
+`;
+
+const PageTitle = styled.h2`
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 1.45rem;
+  line-height: 1.1;
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.md};
+  min-width: 0;
+`;
+
+const SearchLabel = styled.label`
+  width: 22rem;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: 0 ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.surfaceElevated};
+  color: ${({ theme }) => theme.textSecondary};
+`;
+
+const SearchIcon = styled.span`
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 0.42rem;
+    height: 2px;
+    right: -0.34rem;
+    bottom: -0.16rem;
+    border-radius: 999px;
+    background: currentColor;
+    transform: rotate(45deg);
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  min-width: 0;
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 0.9rem;
+
+  &::placeholder {
+    color: ${({ theme }) => theme.textSecondary};
+    opacity: 0.9;
+  }
+`;
+
+const CreateButton = styled.button`
+  min-height: 2.75rem;
+  padding: 0 ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.accent};
+  color: #071111;
+  font-size: 0.92rem;
+  font-weight: 800;
+`;
+
+const NotificationIcon = styled.span`
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.surfaceElevated};
+  color: ${({ theme }) => theme.textSecondary};
+
+  &::before {
+    content: "";
+    width: 0.76rem;
+    height: 0.9rem;
+    border: 2px solid currentColor;
+    border-bottom-width: 3px;
+    border-radius: 999px 999px 0.45rem 0.45rem;
+  }
+`;
+
+const UserBadge = styled.span`
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.surfaceElevated};
+  color: ${({ theme }) => theme.textPrimary};
+  font-size: 0.92rem;
+  font-weight: 800;
+`;
