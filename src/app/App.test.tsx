@@ -8,13 +8,17 @@ afterEach(() => {
   cleanup();
 });
 
+function renderApp() {
+  render(
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
+  );
+}
+
 describe("App", () => {
   it("renders the core app layout shell", () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <App />
-      </ThemeProvider>
-    );
+    renderApp();
 
     const navigation = screen.getByRole("navigation", { name: "主要導覽" });
 
@@ -36,26 +40,45 @@ describe("App", () => {
   });
 
   it("renders the static dashboard overview cards", () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <App />
-      </ThemeProvider>
-    );
+    renderApp();
 
-    expect(screen.getByText("進行中專案")).toBeInTheDocument();
-    expect(screen.getByText("目前正在處理的接案專案")).toBeInTheDocument();
-    expect(screen.getByText("6")).toBeInTheDocument();
+    const overviewCards = screen.getByRole("region", { name: "儀表板摘要" });
 
-    expect(screen.getByText("本週待辦")).toBeInTheDocument();
-    expect(screen.getByText("本週需要完成的任務")).toBeInTheDocument();
-    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("進行中專案")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("目前正在處理的接案專案")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("6")).toBeInTheDocument();
 
-    expect(screen.getByText("即將到期")).toBeInTheDocument();
-    expect(screen.getByText("未來 7 天內到期")).toBeInTheDocument();
-    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("本週待辦")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("本週需要完成的任務")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("12")).toBeInTheDocument();
 
-    expect(screen.getByText("已完成任務")).toBeInTheDocument();
-    expect(screen.getByText("本月已完成的任務")).toBeInTheDocument();
-    expect(screen.getByText("28")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("即將到期")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("未來 7 天內到期")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("4")).toBeInTheDocument();
+
+    expect(within(overviewCards).getByText("已完成任務")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("本月已完成的任務")).toBeInTheDocument();
+    expect(within(overviewCards).getByText("28")).toBeInTheDocument();
+  });
+
+  it("renders the static active projects section", () => {
+    renderApp();
+
+    const activeProjects = screen.getByRole("region", { name: "進行中專案" });
+
+    expect(
+      within(activeProjects).getByText("目前正在推進的接案專案與完成進度。")
+    ).toBeInTheDocument();
+
+    for (const project of [
+      ["品牌官網重設計", "Bright Studio", "進行中", "75%", "5 月 24 日"],
+      ["電商功能開發", "FlowMart", "開發中", "60%", "5 月 28 日"],
+      ["客戶提案製作", "Northwind Co.", "待確認", "35%", "5 月 30 日"],
+      ["個人作品網站", "Internal", "優化中", "90%", "6 月 02 日"]
+    ]) {
+      for (const text of project) {
+        expect(within(activeProjects).getByText(text)).toBeInTheDocument();
+      }
+    }
   });
 });
