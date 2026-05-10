@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { ActiveProjects } from "../components/dashboard/ActiveProjects";
 import { OverviewCards } from "../components/dashboard/OverviewCards";
+import { RecentActivity } from "../components/dashboard/RecentActivity";
 import { UpcomingDeadlines } from "../components/dashboard/UpcomingDeadlines";
 import { AppHeader } from "../components/navigation/AppHeader";
 import { Sidebar } from "../components/navigation/Sidebar";
@@ -20,6 +21,7 @@ export function AppLayout() {
           <OverviewCards />
           <ActiveProjects />
           <UpcomingDeadlines />
+          <RecentActivity />
         </MainContent>
       </ContentArea>
     </LayoutShell>
