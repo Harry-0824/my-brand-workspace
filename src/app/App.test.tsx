@@ -202,4 +202,28 @@ describe("App", () => {
       expect(within(taskDetailPanel).getByText(text)).toBeInTheDocument();
     }
   });
+
+  it("renders the static client summary section", () => {
+    renderApp();
+
+    const clientSummary = screen.getByRole("region", { name: "客戶概覽" });
+
+    for (const text of [
+      "快速查看目前合作客戶、專案數與追蹤狀態。",
+      "Bright Studio",
+      "FlowMart",
+      "Northwind Co.",
+      "Internal",
+      "合作中",
+      "開發中",
+      "待確認",
+      "內部優化",
+      "確認首頁視覺方向",
+      "回報購物車測試結果",
+      "等待提案回覆",
+      "整理作品集內容"
+    ]) {
+      expect(within(clientSummary).getByText(text)).toBeInTheDocument();
+    }
+  });
 });

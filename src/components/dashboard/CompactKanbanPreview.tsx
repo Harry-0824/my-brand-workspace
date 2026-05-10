@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { DashboardPanel } from "./shared/DashboardPanel";
 
 const kanbanColumns = [
   {
@@ -81,7 +82,7 @@ const priorityTone = {
 
 export function CompactKanbanPreview() {
   return (
-    <Panel aria-labelledby="compact-kanban-title">
+    <DashboardPanel aria-labelledby="compact-kanban-title">
       <SectionHeader>
         <div>
           <SectionTitle id="compact-kanban-title">任務看板</SectionTitle>
@@ -112,19 +113,9 @@ export function CompactKanbanPreview() {
           </Column>
         ))}
       </ColumnsGrid>
-    </Panel>
+    </DashboardPanel>
   );
 }
-
-const Panel = styled.section`
-  padding: ${({ theme }) => theme.spacing.xl};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.018)),
-    ${({ theme }) => theme.surface};
-  box-shadow: 0 22px 55px rgb(0 0 0 / 0.18);
-`;
 
 const SectionHeader = styled.div`
   display: flex;
