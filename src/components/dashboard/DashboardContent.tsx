@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { ActiveProjects } from "./ActiveProjects";
 import { ClientSummary } from "./ClientSummary";
 import { CompactKanbanPreview } from "./CompactKanbanPreview";
+import { DashboardStatePreviews } from "./DashboardStatePreviews";
 import { FocusPlan } from "./FocusPlan";
 import { OverviewCards } from "./OverviewCards";
 import { RecentActivity } from "./RecentActivity";
@@ -33,6 +34,7 @@ export function DashboardContent() {
           <RecentActivity />
           <TaskDetailPanelPreview />
           <RevenueInvoiceSummary />
+          <DashboardStatePreviews />
         </RightColumn>
       </PrimaryGrid>
     </MainContent>

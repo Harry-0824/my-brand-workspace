@@ -298,4 +298,25 @@ describe("App", () => {
       expect(screen.getAllByText(text).length).toBeGreaterThan(0);
     }
   });
+
+  it("renders the static dashboard state previews section", () => {
+    renderApp();
+
+    const statePreviews = screen.getByRole("region", { name: "狀態預覽" });
+
+    for (const text of [
+      "定義未來資料載入、空資料與錯誤情境的介面樣式。",
+      "載入中",
+      "正在同步工作資料",
+      "請稍候，系統正在整理最新的專案、任務與客戶資訊。",
+      "空資料",
+      "目前沒有待處理項目",
+      "當你新增專案、任務或客戶後，相關資訊會顯示在這裡。",
+      "發生錯誤",
+      "資料暫時無法載入",
+      "請稍後再試，或確認網路連線與服務狀態。"
+    ]) {
+      expect(within(statePreviews).getByText(text)).toBeInTheDocument();
+    }
+  });
 });
