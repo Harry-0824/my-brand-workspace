@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { ActiveProjects } from "../components/dashboard/ActiveProjects";
 import { ClientSummary } from "../components/dashboard/ClientSummary";
 import { CompactKanbanPreview } from "../components/dashboard/CompactKanbanPreview";
+import { FocusPlan } from "../components/dashboard/FocusPlan";
 import { OverviewCards } from "../components/dashboard/OverviewCards";
 import { RecentActivity } from "../components/dashboard/RecentActivity";
 import { RevenueInvoiceSummary } from "../components/dashboard/RevenueInvoiceSummary";
@@ -30,6 +31,7 @@ export function AppLayout() {
           <TaskDetailPanelPreview />
           <ClientSummary />
           <RevenueInvoiceSummary />
+          <FocusPlan />
         </MainContent>
       </ContentArea>
     </LayoutShell>
