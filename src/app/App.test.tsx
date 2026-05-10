@@ -279,4 +279,23 @@ describe("App", () => {
       expect(within(focusPlan).getByText(text)).toBeInTheDocument();
     }
   });
+
+  it("keeps dashboard composition key sections visible", () => {
+    renderApp();
+
+    for (const text of [
+      "My Brand Workspace",
+      "單人接案任務管理工作區",
+      "今日工作重點",
+      "進行中專案",
+      "即將到期",
+      "最近活動",
+      "任務看板",
+      "任務詳情",
+      "客戶概覽",
+      "收款概覽"
+    ]) {
+      expect(screen.getAllByText(text).length).toBeGreaterThan(0);
+    }
+  });
 });
