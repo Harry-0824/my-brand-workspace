@@ -176,4 +176,30 @@ describe("App", () => {
     expect(within(kanbanPreview).getAllByText("高").length).toBeGreaterThan(0);
     expect(within(kanbanPreview).getAllByText("中").length).toBeGreaterThan(0);
   });
+
+  it("renders the static task detail side panel preview section", () => {
+    renderApp();
+
+    const taskDetailPanel = screen.getByRole("region", { name: "任務詳情" });
+
+    for (const text of [
+      "預覽選取任務的狀態、內容與執行細節。",
+      "完成首頁線框",
+      "品牌官網重設計",
+      "進行中",
+      "高",
+      "5 月 24 日",
+      "Bright Studio",
+      "根據客戶回饋調整首頁首屏、服務區塊與行動呼籲區，確認桌面版資訊層級與視覺節奏。",
+      "完成首屏 wireframe",
+      "調整服務區塊資訊層級",
+      "整理 CTA 文案",
+      "確認客戶回饋重點",
+      "wireframe-v2.fig",
+      "client-feedback.md",
+      "下一步需將首頁主要訊息收斂成 3 個重點，避免首屏資訊過重。"
+    ]) {
+      expect(within(taskDetailPanel).getByText(text)).toBeInTheDocument();
+    }
+  });
 });

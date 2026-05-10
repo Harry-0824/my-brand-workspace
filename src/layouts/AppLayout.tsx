@@ -3,6 +3,7 @@ import { ActiveProjects } from "../components/dashboard/ActiveProjects";
 import { CompactKanbanPreview } from "../components/dashboard/CompactKanbanPreview";
 import { OverviewCards } from "../components/dashboard/OverviewCards";
 import { RecentActivity } from "../components/dashboard/RecentActivity";
+import { TaskDetailPanelPreview } from "../components/dashboard/TaskDetailPanelPreview";
 import { UpcomingDeadlines } from "../components/dashboard/UpcomingDeadlines";
 import { AppHeader } from "../components/navigation/AppHeader";
 import { Sidebar } from "../components/navigation/Sidebar";
@@ -24,6 +25,7 @@ export function AppLayout() {
           <UpcomingDeadlines />
           <RecentActivity />
           <CompactKanbanPreview />
+          <TaskDetailPanelPreview />
         </MainContent>
       </ContentArea>
     </LayoutShell>
