@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { DashboardContent } from "../components/dashboard/DashboardContent";
+import { Outlet } from "react-router-dom";
 import { AppHeader } from "../components/navigation/AppHeader";
 import { Sidebar } from "../components/navigation/Sidebar";
 
@@ -9,7 +9,7 @@ export function AppLayout() {
       <Sidebar />
       <ContentArea>
         <AppHeader />
-        <DashboardContent />
+        <Outlet />
       </ContentArea>
     </LayoutShell>
   );

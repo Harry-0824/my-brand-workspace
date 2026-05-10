@@ -1,10 +1,20 @@
+﻿import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 
-const navItems = ["儀表板", "專案", "任務", "看板", "行事曆", "客戶", "檔案", "設定"] as const;
+const navItems = [
+  { label: "儀表板", to: "/" },
+  { label: "專案", to: "/projects" },
+  { label: "任務", to: "/tasks" },
+  { label: "客戶", to: "/clients" },
+  { label: "收款", to: "/invoices" },
+  { label: "行事曆", to: "/" },
+  { label: "分析", to: "/" },
+  { label: "設定", to: "/" }
+] as const;
 
 export function Sidebar() {
   return (
-    <SidebarShell aria-label="主要導覽">
+    <SidebarShell aria-label="主要導航">
       <BrandBlock>
         <BrandMark aria-hidden="true">M</BrandMark>
         <BrandText>
@@ -15,13 +25,16 @@ export function Sidebar() {
 
       <NavList>
         {navItems.map((item) => {
-          const isActive = item === "儀表板";
+          const isRoot = item.to === "/";
 
           return (
-            <NavListItem key={item}>
-              <NavItem $active={isActive} aria-current={isActive ? "page" : undefined}>
+            <NavListItem key={item.label}>
+              <NavItem
+                to={item.to}
+                end={isRoot}
+              >
                 <NavIcon aria-hidden="true" />
-                <span>{item}</span>
+                <span>{item.label}</span>
               </NavItem>
             </NavListItem>
           );
@@ -85,20 +98,26 @@ const NavListItem = styled.li`
   min-width: 0;
 `;
 
-const NavItem = styled.span<{ $active?: boolean }>`
+const NavItem = styled(NavLink)`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   min-height: 2.75rem;
   padding: 0 ${({ theme }) => theme.spacing.md};
-  border: 1px solid
-    ${({ $active, theme }) => ($active ? "rgb(98 214 199 / 0.36)" : "transparent")};
+  border: 1px solid transparent;
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ $active, theme }) =>
-    $active ? "rgb(98 214 199 / 0.12)" : "transparent"};
-  color: ${({ $active, theme }) => ($active ? theme.textPrimary : theme.textSecondary)};
+  background: transparent;
+  color: ${({ theme }) => theme.textSecondary};
   font-size: 0.94rem;
-  font-weight: ${({ $active }) => ($active ? 800 : 600)};
+  font-weight: 600;
+  text-decoration: none;
+
+  &.active {
+    border-color: rgb(98 214 199 / 0.36);
+    background: rgb(98 214 199 / 0.12);
+    color: ${({ theme }) => theme.textPrimary};
+    font-weight: 800;
+  }
 `;
 
 const NavIcon = styled.span`
