@@ -81,4 +81,30 @@ describe("App", () => {
       }
     }
   });
+
+  it("renders the static upcoming deadlines section", () => {
+    renderApp();
+
+    const upcomingDeadlines = screen.getByRole("region", { name: "即將到期" });
+
+    expect(
+      within(upcomingDeadlines).getByText("未來 7 天內需要完成或確認的重點事項。")
+    ).toBeInTheDocument();
+
+    for (const [item, project, date, type, priority] of [
+      ["首頁視覺確認", "品牌官網重設計", "5 月 20 日", "設計審核", "高"],
+      ["購物車流程測試", "電商功能開發", "5 月 22 日", "功能測試", "高"],
+      ["提案內容調整", "客戶提案製作", "5 月 23 日", "文件更新", "中"],
+      ["部署前檢查", "個人作品網站", "5 月 25 日", "部署準備", "中"],
+      ["客戶回覆追蹤", "品牌官網重設計", "5 月 26 日", "客戶溝通", "低"]
+    ]) {
+      const deadlineRow = within(upcomingDeadlines).getByRole("article", {
+        name: item
+      });
+
+      for (const text of [item, project, date, type, priority]) {
+        expect(within(deadlineRow).getByText(text)).toBeInTheDocument();
+      }
+    }
+  });
 });
