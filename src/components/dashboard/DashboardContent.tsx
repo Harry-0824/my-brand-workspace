@@ -5,6 +5,7 @@ import { CompactKanbanPreview } from "./CompactKanbanPreview";
 import { DashboardStatePreviews } from "./DashboardStatePreviews";
 import { FocusPlan } from "./FocusPlan";
 import { OverviewCards } from "./OverviewCards";
+import { QuickActions } from "./QuickActions";
 import { RecentActivity } from "./RecentActivity";
 import { RevenueInvoiceSummary } from "./RevenueInvoiceSummary";
 import { TaskDetailPanelPreview } from "./TaskDetailPanelPreview";
@@ -20,6 +21,7 @@ export function DashboardContent() {
       </DashboardIntro>
 
       <OverviewCards />
+      <QuickActions />
       <FocusPlan />
 
       <PrimaryGrid>
