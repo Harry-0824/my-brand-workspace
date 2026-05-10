@@ -319,4 +319,31 @@ describe("App", () => {
       expect(within(statePreviews).getByText(text)).toBeInTheDocument();
     }
   });
+
+  it("renders the static quick actions section", () => {
+    renderApp();
+
+    const quickActions = screen.getByRole("region", { name: "快速操作" });
+
+    for (const text of [
+      "常用接案流程入口，方便快速建立或追蹤工作事項。",
+      "新增任務",
+      "記錄新的待辦、交付項目或追蹤事項。",
+      "新增專案",
+      "建立新的客戶專案與初始工作清單。",
+      "記錄客戶回覆",
+      "整理客戶訊息、回饋與下一步確認事項。",
+      "建立發票草稿",
+      "準備待收款項目的發票與付款備註。",
+      "更新今日重點",
+      "調整今日工作順序與專注項目。",
+      "常用",
+      "規劃",
+      "追蹤",
+      "財務",
+      "排程"
+    ]) {
+      expect(within(quickActions).getByText(text)).toBeInTheDocument();
+    }
+  });
 });
