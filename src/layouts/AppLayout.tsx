@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { ActiveProjects } from "../components/dashboard/ActiveProjects";
+import { CompactKanbanPreview } from "../components/dashboard/CompactKanbanPreview";
 import { OverviewCards } from "../components/dashboard/OverviewCards";
 import { RecentActivity } from "../components/dashboard/RecentActivity";
 import { UpcomingDeadlines } from "../components/dashboard/UpcomingDeadlines";
@@ -22,6 +23,7 @@ export function AppLayout() {
           <ActiveProjects />
           <UpcomingDeadlines />
           <RecentActivity />
+          <CompactKanbanPreview />
         </MainContent>
       </ContentArea>
     </LayoutShell>
