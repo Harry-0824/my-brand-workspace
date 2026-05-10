@@ -24,8 +24,15 @@ describe("App static routing", () => {
   it("renders dashboard on /", () => {
     renderApp(["/"]);
 
-    expect(screen.getByRole("navigation", { name: "主要導航" })).toBeInTheDocument();
+    const navigation = screen.getByRole("navigation", { name: "主要導航" });
+
     expect(screen.getByRole("heading", { name: "儀表板" })).toBeInTheDocument();
+    const currentPageLinks = within(navigation).getAllByRole("link", {
+      current: "page"
+    });
+
+    expect(currentPageLinks).toHaveLength(1);
+    expect(currentPageLinks[0]).toHaveTextContent("儀表板");
   });
 
   it("renders ProjectsPage on /projects", () => {
