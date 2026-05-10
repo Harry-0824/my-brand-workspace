@@ -254,4 +254,29 @@ describe("App", () => {
     expect(within(revenueSummary).getAllByText("已開立發票").length).toBeGreaterThan(0);
     expect(within(revenueSummary).getAllByText("待開立發票").length).toBeGreaterThan(0);
   });
+
+  it("renders the static focus plan section", () => {
+    renderApp();
+
+    const focusPlan = screen.getByRole("region", { name: "今日工作重點" });
+
+    for (const text of [
+      "根據目前專案狀態，整理今天最需要推進的工作順序。",
+      "09:30 - 11:00",
+      "11:15 - 12:00",
+      "14:00 - 15:30",
+      "完成首頁線框調整",
+      "檢查購物車測試結果",
+      "整理提案修改內容",
+      "品牌官網重設計",
+      "電商功能開發",
+      "客戶提案製作",
+      "進行中",
+      "待處理",
+      "排程中",
+      "今日建議：先處理高影響交付，再集中回覆客戶訊息。"
+    ]) {
+      expect(within(focusPlan).getByText(text)).toBeInTheDocument();
+    }
+  });
 });
