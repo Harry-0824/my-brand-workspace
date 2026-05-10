@@ -137,4 +137,43 @@ describe("App", () => {
       expect(within(recentActivity).getByText(text)).toBeInTheDocument();
     }
   });
+
+  it("renders the static compact kanban preview section", () => {
+    renderApp();
+
+    const kanbanPreview = screen.getByRole("region", { name: "任務看板" });
+
+    expect(
+      within(kanbanPreview).getByText("快速查看目前任務在各流程階段的分布。")
+    ).toBeInTheDocument();
+
+    for (const text of [
+      "待辦",
+      "進行中",
+      "待審核",
+      "已完成",
+      "整理客戶需求",
+      "建立測試清單",
+      "完成首頁線框",
+      "更新提案內容",
+      "準備部署檢查",
+      "確認資訊架構",
+      "電商功能開發",
+      "客戶提案製作",
+      "個人作品網站",
+      "低",
+      "5 月 18 日",
+      "5 月 20 日",
+      "5 月 22 日",
+      "5 月 23 日",
+      "5 月 24 日",
+      "5 月 25 日"
+    ]) {
+      expect(within(kanbanPreview).getByText(text)).toBeInTheDocument();
+    }
+
+    expect(within(kanbanPreview).getAllByText("品牌官網重設計").length).toBeGreaterThan(0);
+    expect(within(kanbanPreview).getAllByText("高").length).toBeGreaterThan(0);
+    expect(within(kanbanPreview).getAllByText("中").length).toBeGreaterThan(0);
+  });
 });
