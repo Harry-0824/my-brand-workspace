@@ -4,6 +4,7 @@ import { ClientSummary } from "../components/dashboard/ClientSummary";
 import { CompactKanbanPreview } from "../components/dashboard/CompactKanbanPreview";
 import { OverviewCards } from "../components/dashboard/OverviewCards";
 import { RecentActivity } from "../components/dashboard/RecentActivity";
+import { RevenueInvoiceSummary } from "../components/dashboard/RevenueInvoiceSummary";
 import { TaskDetailPanelPreview } from "../components/dashboard/TaskDetailPanelPreview";
 import { UpcomingDeadlines } from "../components/dashboard/UpcomingDeadlines";
 import { AppHeader } from "../components/navigation/AppHeader";
@@ -28,6 +29,7 @@ export function AppLayout() {
           <CompactKanbanPreview />
           <TaskDetailPanelPreview />
           <ClientSummary />
+          <RevenueInvoiceSummary />
         </MainContent>
       </ContentArea>
     </LayoutShell>

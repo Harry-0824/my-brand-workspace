@@ -226,4 +226,32 @@ describe("App", () => {
       expect(within(clientSummary).getByText(text)).toBeInTheDocument();
     }
   });
+
+  it("renders the static revenue and invoice summary section", () => {
+    renderApp();
+
+    const revenueSummary = screen.getByRole("region", { name: "收款概覽" });
+
+    for (const text of [
+      "掌握本月收入、待收款與發票處理狀態。",
+      "本月已收款",
+      "$3,200",
+      "$4,800",
+      "品牌官網重設計首期款",
+      "電商功能開發尾款",
+      "提案製作費",
+      "作品集優化",
+      "Bright Studio",
+      "FlowMart",
+      "Northwind Co.",
+      "Internal",
+      "內部項目"
+    ]) {
+      expect(within(revenueSummary).getByText(text)).toBeInTheDocument();
+    }
+
+    expect(within(revenueSummary).getAllByText("待收款").length).toBeGreaterThan(0);
+    expect(within(revenueSummary).getAllByText("已開立發票").length).toBeGreaterThan(0);
+    expect(within(revenueSummary).getAllByText("待開立發票").length).toBeGreaterThan(0);
+  });
 });
