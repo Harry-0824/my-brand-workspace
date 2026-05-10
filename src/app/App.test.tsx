@@ -107,4 +107,34 @@ describe("App", () => {
       }
     }
   });
+
+  it("renders the static recent activity timeline section", () => {
+    renderApp();
+
+    const recentActivity = screen.getByRole("region", { name: "最近活動" });
+
+    expect(
+      within(recentActivity).getByText("近期專案、任務與客戶溝通的更新紀錄。")
+    ).toBeInTheDocument();
+
+    for (const text of [
+      "完成首頁線框調整",
+      "新增購物車流程測試案例",
+      "更新客戶提案內容",
+      "完成正式環境部署檢查",
+      "追蹤客戶回覆狀態",
+      "今天 10:30",
+      "今天 09:15",
+      "昨天 16:40",
+      "昨天 14:20",
+      "5 月 18 日",
+      "設計",
+      "測試",
+      "文件",
+      "部署",
+      "溝通"
+    ]) {
+      expect(within(recentActivity).getByText(text)).toBeInTheDocument();
+    }
+  });
 });
