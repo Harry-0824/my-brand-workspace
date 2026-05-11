@@ -7,6 +7,7 @@ const navItems = [
   { label: "任務", to: "/tasks" },
   { label: "客戶", to: "/clients" },
   { label: "收款", to: "/invoices" },
+  { label: "報表", to: "/reports" },
   { label: "設定", to: "/settings" }
 ] as const;
 
