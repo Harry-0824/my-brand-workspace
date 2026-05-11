@@ -113,7 +113,7 @@ export function ProjectsPage() {
 const MetricGrid = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
@@ -140,7 +140,7 @@ const MetricValue = styled.p`
 const ToolbarRow = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px 160px;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: ${({ theme }) => theme.spacing.sm};
 `;
 

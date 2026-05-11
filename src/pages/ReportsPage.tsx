@@ -132,7 +132,7 @@ export function ReportsPage() {
 const MetricGrid = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
@@ -198,7 +198,7 @@ const RowNote = styled.p`
 const TripletGrid = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
