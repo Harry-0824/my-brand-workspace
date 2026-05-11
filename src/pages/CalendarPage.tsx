@@ -131,7 +131,7 @@ export function CalendarPage() {
 const WeekGrid = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
   gap: ${({ theme }) => theme.spacing.sm};
 `;
 

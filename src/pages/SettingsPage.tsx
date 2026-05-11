@@ -144,7 +144,7 @@ const Value = styled.p`
 const CardGrid = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: ${({ theme }) => theme.spacing.md};
 `;
 

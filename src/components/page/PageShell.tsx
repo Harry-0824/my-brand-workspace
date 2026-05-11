@@ -1,4 +1,4 @@
-import styled from "styled-components";
+﻿import styled from "styled-components";
 
 export const PageMain = styled.main`
   min-height: 100vh;
@@ -7,6 +7,14 @@ export const PageMain = styled.main`
   gap: ${({ theme }) => theme.spacing.xl};
   padding: ${({ theme }) => theme.spacing.xxl};
   background: ${({ theme }) => theme.background};
+
+  @media (max-width: 1200px) {
+    padding: ${({ theme }) => theme.spacing.xl};
+  }
+
+  @media (max-width: 960px) {
+    padding: ${({ theme }) => theme.spacing.lg};
+  }
 `;
 
 export const PageHeader = styled.section`
@@ -24,3 +32,4 @@ export const PageDescription = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 1rem;
 `;
+
