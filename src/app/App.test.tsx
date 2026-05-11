@@ -59,6 +59,12 @@ describe("App static routing", () => {
     expect(screen.getByRole("heading", { name: "檔案" })).toBeInTheDocument();
   });
 
+  it("renders HelpPage on /help", () => {
+    renderApp(["/help"]);
+
+    expect(screen.getByRole("heading", { name: "說明" })).toBeInTheDocument();
+  });
+
   it("renders InvoicesPage on /invoices", () => {
     renderApp(["/invoices"]);
 
@@ -101,6 +107,7 @@ describe("App static routing", () => {
     const projectsLink = within(navigation).getByRole("link", { name: "專案" });
     const tasksLink = within(navigation).getByRole("link", { name: "任務" });
     const filesLink = within(navigation).getByRole("link", { name: "檔案" });
+    const helpLink = within(navigation).getByRole("link", { name: "說明" });
     const calendarLink = within(navigation).getByRole("link", { name: "行事曆" });
     const reportsLink = within(navigation).getByRole("link", { name: "報表" });
     const settingsLink = within(navigation).getByRole("link", { name: "設定" });
@@ -118,6 +125,10 @@ describe("App static routing", () => {
     await user.click(filesLink);
     expect(screen.getByRole("heading", { name: "檔案" })).toBeInTheDocument();
     expect(filesLink).toHaveAttribute("aria-current", "page");
+
+    await user.click(helpLink);
+    expect(screen.getByRole("heading", { name: "說明" })).toBeInTheDocument();
+    expect(helpLink).toHaveAttribute("aria-current", "page");
 
     await user.click(calendarLink);
     expect(screen.getByRole("heading", { name: "行事曆" })).toBeInTheDocument();
