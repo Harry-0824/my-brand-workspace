@@ -77,6 +77,13 @@ describe("App static routing", () => {
     expect(screen.getByRole("heading", { name: "行事曆" })).toBeInTheDocument();
   });
 
+  it("renders NotFoundPage on unknown route", () => {
+    renderApp(["/unknown-route"]);
+
+    expect(screen.getByRole("heading", { name: "找不到頁面" })).toBeInTheDocument();
+    expect(screen.getByText("回到儀表板")).toBeInTheDocument();
+  });
+
   it("navigates between main routes from sidebar and updates active item", async () => {
     const user = userEvent.setup();
 
