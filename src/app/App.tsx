@@ -4,6 +4,7 @@ import { AppLayout } from "../layouts/AppLayout";
 import { CalendarPage } from "../pages/CalendarPage";
 import { ClientsPage } from "../pages/ClientsPage";
 import { InvoicesPage } from "../pages/InvoicesPage";
+import { NotFoundPage } from "../pages/NotFoundPage";
 import { ProjectsPage } from "../pages/ProjectsPage";
 import { ReportsPage } from "../pages/ReportsPage";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -21,6 +22,7 @@ export function App() {
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );
