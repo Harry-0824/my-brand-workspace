@@ -6,6 +6,7 @@ const navItems = [
   { label: "專案", to: "/projects" },
   { label: "任務", to: "/tasks" },
   { label: "客戶", to: "/clients" },
+  { label: "檔案", to: "/files" },
   { label: "收款", to: "/invoices" },
   { label: "行事曆", to: "/calendar" },
   { label: "報表", to: "/reports" },

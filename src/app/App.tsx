@@ -3,6 +3,7 @@ import { DashboardContent } from "../components/dashboard/DashboardContent";
 import { AppLayout } from "../layouts/AppLayout";
 import { CalendarPage } from "../pages/CalendarPage";
 import { ClientsPage } from "../pages/ClientsPage";
+import { FilesPage } from "../pages/FilesPage";
 import { InvoicesPage } from "../pages/InvoicesPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { ProjectsPage } from "../pages/ProjectsPage";
@@ -18,6 +19,7 @@ export function App() {
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="clients" element={<ClientsPage />} />
+        <Route path="files" element={<FilesPage />} />
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="reports" element={<ReportsPage />} />
