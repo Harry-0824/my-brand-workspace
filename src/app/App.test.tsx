@@ -59,6 +59,12 @@ describe("App static routing", () => {
     expect(screen.getByRole("heading", { name: "收款管理" })).toBeInTheDocument();
   });
 
+  it("renders SettingsPage on /settings", () => {
+    renderApp(["/settings"]);
+
+    expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument();
+  });
+
   it("navigates between main routes from sidebar and updates active item", async () => {
     const user = userEvent.setup();
 
@@ -69,6 +75,7 @@ describe("App static routing", () => {
     const dashboardLink = within(navigation).getByRole("link", { name: "儀表板" });
     const projectsLink = within(navigation).getByRole("link", { name: "專案" });
     const tasksLink = within(navigation).getByRole("link", { name: "任務" });
+    const settingsLink = within(navigation).getByRole("link", { name: "設定" });
 
     expect(dashboardLink).toHaveAttribute("aria-current", "page");
 
@@ -79,5 +86,9 @@ describe("App static routing", () => {
     await user.click(tasksLink);
     expect(screen.getByRole("heading", { name: "任務管理" })).toBeInTheDocument();
     expect(tasksLink).toHaveAttribute("aria-current", "page");
+
+    await user.click(settingsLink);
+    expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument();
+    expect(settingsLink).toHaveAttribute("aria-current", "page");
   });
 });

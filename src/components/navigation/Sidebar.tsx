@@ -6,7 +6,8 @@ const navItems = [
   { label: "專案", to: "/projects" },
   { label: "任務", to: "/tasks" },
   { label: "客戶", to: "/clients" },
-  { label: "收款", to: "/invoices" }
+  { label: "收款", to: "/invoices" },
+  { label: "設定", to: "/settings" }
 ] as const;
 
 export function Sidebar() {
