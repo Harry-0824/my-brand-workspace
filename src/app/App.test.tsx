@@ -31,6 +31,35 @@ function assertSingleActiveLink(navigation: HTMLElement, expectedLabel: string) 
 }
 
 describe("App static routing", () => {
+  it("renders dashboard MVP overview and quick action links on /", () => {
+    renderApp(["/"]);
+
+    expect(screen.getByRole("heading", { name: "工作區快照" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "快速捷徑" })).toBeInTheDocument();
+
+    const quickActionPaths = [
+      "/projects",
+      "/tasks",
+      "/clients",
+      "/invoices",
+      "/calendar",
+      "/files"
+    ];
+
+    for (const path of quickActionPaths) {
+      expect(screen.getByRole("link", { name: `quick-action-${path}` })).toBeInTheDocument();
+    }
+  });
+
+  it("navigates to /projects from dashboard quick actions", async () => {
+    const user = userEvent.setup();
+
+    renderApp(["/"]);
+
+    await user.click(screen.getByRole("link", { name: "quick-action-/projects" }));
+    expect(screen.getByRole("heading", { name: "專案管理" })).toBeInTheDocument();
+  });
+
   it.each(
     ROUTE_HEADING_CASES.map(({ path, heading }) => [
       path,

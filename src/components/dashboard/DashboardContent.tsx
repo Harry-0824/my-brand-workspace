@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { ActiveProjects } from "./ActiveProjects";
 import { ClientSummary } from "./ClientSummary";
 import { CompactKanbanPreview } from "./CompactKanbanPreview";
+import { DashboardMvpOverview } from "./DashboardMvpOverview";
 import { DashboardStatePreviews } from "./DashboardStatePreviews";
 import { FocusPlan } from "./FocusPlan";
 import { OverviewCards } from "./OverviewCards";
@@ -20,6 +21,7 @@ export function DashboardContent() {
         <WorkspaceStatus>今天先從專案狀態與待辦摘要開始。</WorkspaceStatus>
       </DashboardIntro>
 
+      <DashboardMvpOverview />
       <OverviewCards />
       <QuickActions />
       <FocusPlan />
