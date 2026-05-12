@@ -31,14 +31,21 @@ function assertSingleActiveLink(navigation: HTMLElement, expectedLabel: string) 
 }
 
 describe("App static routing", () => {
-  it.each([
-    ["/", "儀表板 | My Brand Workspace"],
-    ["/projects", "專案管理 | My Brand Workspace"],
-    ["/unknown-route", "找不到頁面 | My Brand Workspace"]
-  ])("sets document.title for %s", (path, expectedTitle) => {
+  it.each(
+    ROUTE_HEADING_CASES.map(({ path, heading }) => [
+      path,
+      `${heading} | My Brand Workspace`
+    ])
+  )("sets document.title for %s", (path, expectedTitle) => {
     renderApp([path]);
 
     expect(document.title).toBe(expectedTitle);
+  });
+
+  it("sets document.title fallback for unknown route", () => {
+    renderApp(["/unknown-route"]);
+
+    expect(document.title).toBe("找不到頁面 | My Brand Workspace");
   });
 
   it.each(ROUTE_HEADING_CASES)("renders $path", ({ path, heading }) => {
