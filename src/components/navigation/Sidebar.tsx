@@ -1,18 +1,6 @@
-﻿import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import styled from "styled-components";
-
-const navItems = [
-  { label: "儀表板", to: "/" },
-  { label: "專案", to: "/projects" },
-  { label: "任務", to: "/tasks" },
-  { label: "客戶", to: "/clients" },
-  { label: "檔案", to: "/files" },
-  { label: "說明", to: "/help" },
-  { label: "收款", to: "/invoices" },
-  { label: "行事曆", to: "/calendar" },
-  { label: "報表", to: "/reports" },
-  { label: "設定", to: "/settings" }
-] as const;
+import { SIDEBAR_ROUTES } from "../../app/routes";
 
 export function Sidebar() {
   return (
@@ -26,13 +14,13 @@ export function Sidebar() {
       </BrandBlock>
 
       <NavList>
-        {navItems.map((item) => {
-          const isRoot = item.to === "/";
+        {SIDEBAR_ROUTES.map((item) => {
+          const isRoot = item.path === "/";
 
           return (
-            <NavListItem key={item.label}>
+            <NavListItem key={item.key}>
               <NavItem
-                to={item.to}
+                to={item.path}
                 end={isRoot}
               >
                 <NavIcon aria-hidden="true" />
