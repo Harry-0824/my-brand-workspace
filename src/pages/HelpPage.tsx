@@ -5,6 +5,11 @@ import {
   PageMain,
   PageTitle
 } from "../components/page/PageShell";
+import {
+  PageList,
+  PageListCard,
+  PageNote
+} from "../components/page/PageContentPrimitives";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 
@@ -136,18 +141,8 @@ export function HelpPage() {
   );
 }
 
-const List = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const ListRow = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
+const List = PageList;
+const ListRow = PageListCard;
 
 const RowTitle = styled.h3`
   color: ${({ theme }) => theme.textPrimary};
@@ -188,13 +183,4 @@ const CardDetail = styled.p`
   line-height: 1.65;
 `;
 
-const Note = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(98 214 199 / 0.25);
-  border-radius: ${({ theme }) => theme.radius.md};
-  color: ${({ theme }) => theme.textPrimary};
-  background: rgb(98 214 199 / 0.08);
-  font-size: 0.9rem;
-  line-height: 1.7;
-`;
+const Note = PageNote;
