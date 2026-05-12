@@ -11,6 +11,7 @@ import {
   PageMetricLabel,
   PageMetricValue
 } from "../components/page/PageContentPrimitives";
+import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 
@@ -112,6 +113,16 @@ export function ProjectsPage() {
           ))}
         </Rows>
       </DashboardPanel>
+
+      <PageNextStep
+        titleId="projects-next-step-title"
+        title="下一步建議"
+        description="確認專案狀態後，建議直接切換到執行與排程頁面。"
+        links={[
+          { label: "前往任務頁面，安排下一步執行項目", to: "/tasks" },
+          { label: "前往行事曆頁面，檢查近期里程碑", to: "/calendar" }
+        ]}
+      />
     </PageMain>
   );
 }

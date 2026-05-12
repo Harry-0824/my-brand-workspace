@@ -31,6 +31,26 @@ function assertSingleActiveLink(navigation: HTMLElement, expectedLabel: string) 
 }
 
 describe("App static routing", () => {
+  it("renders next-step CTA sections on core pages", () => {
+    renderApp(["/projects"]);
+    expect(screen.getByRole("heading", { name: "下一步建議" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" })).toBeInTheDocument();
+
+    cleanup();
+    renderApp(["/clients"]);
+    expect(screen.getByRole("heading", { name: "下一步建議" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "前往收款頁面，檢查待收款與發票" })).toBeInTheDocument();
+  });
+
+  it("navigates from projects CTA link to /tasks", async () => {
+    const user = userEvent.setup();
+
+    renderApp(["/projects"]);
+
+    await user.click(screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" }));
+    expect(screen.getByRole("heading", { name: "任務管理" })).toBeInTheDocument();
+  });
+
   it("renders dashboard MVP overview and quick action links on /", () => {
     renderApp(["/"]);
 

@@ -14,6 +14,7 @@ import {
   PageMetricValue,
   PageNote
 } from "../components/page/PageContentPrimitives";
+import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import {
@@ -111,6 +112,17 @@ export function FilesPage() {
           建議交付前先統一檔名版本與資料夾結構，避免客戶端誤用舊版檔案。
         </Note>
       </DashboardPanel>
+
+      <PageNextStep
+        titleId="files-next-step-title"
+        title="下一步建議"
+        description="檔案整理完成後，建議直接銜接專案與說明頁面的後續動作。"
+        links={[
+          { label: "前往專案頁面，更新交付進度", to: "/projects" },
+          { label: "前往說明頁面，確認交付流程提醒", to: "/help" }
+        ]}
+        note="交付前先比對檔名與版本，能有效降低返工機率。"
+      />
     </PageMain>
   );
 }
