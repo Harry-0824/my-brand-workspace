@@ -5,6 +5,12 @@ import {
   PageMain,
   PageTitle
 } from "../components/page/PageShell";
+import {
+  PageMetricCard,
+  PageMetricGrid,
+  PageMetricLabel,
+  PageMetricValue
+} from "../components/page/PageContentPrimitives";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 
@@ -109,32 +115,10 @@ export function InvoicesPage() {
   );
 }
 
-const MetricGrid = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const MetricCard = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const MetricLabel = styled.p`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.82rem;
-  font-weight: 700;
-`;
-
-const MetricValue = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.15rem;
-  font-weight: 800;
-`;
+const MetricGrid = PageMetricGrid;
+const MetricCard = PageMetricCard;
+const MetricLabel = PageMetricLabel;
+const MetricValue = PageMetricValue;
 
 const ToolbarRow = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
