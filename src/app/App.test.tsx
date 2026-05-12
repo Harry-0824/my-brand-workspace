@@ -20,73 +20,46 @@ function renderApp(initialEntries: string[] = ["/"]) {
   );
 }
 
+function assertSingleActiveLink(navigation: HTMLElement, expectedLabel: string) {
+  const currentPageLinks = within(navigation).getAllByRole("link", {
+    current: "page"
+  });
+
+  expect(currentPageLinks).toHaveLength(1);
+  expect(currentPageLinks[0]).toHaveTextContent(expectedLabel);
+}
+
+const routeHeadingCases = [
+  { path: "/", heading: "儀表板" },
+  { path: "/projects", heading: "專案管理" },
+  { path: "/tasks", heading: "任務管理" },
+  { path: "/clients", heading: "客戶管理" },
+  { path: "/files", heading: "檔案" },
+  { path: "/help", heading: "說明" },
+  { path: "/invoices", heading: "收款管理" },
+  { path: "/calendar", heading: "行事曆" },
+  { path: "/reports", heading: "報表" },
+  { path: "/settings", heading: "設定" }
+] as const;
+
+const sidebarNavigationCases = [
+  { label: "儀表板", heading: "儀表板" },
+  { label: "專案", heading: "專案管理" },
+  { label: "任務", heading: "任務管理" },
+  { label: "客戶", heading: "客戶管理" },
+  { label: "檔案", heading: "檔案" },
+  { label: "說明", heading: "說明" },
+  { label: "收款", heading: "收款管理" },
+  { label: "行事曆", heading: "行事曆" },
+  { label: "報表", heading: "報表" },
+  { label: "設定", heading: "設定" }
+] as const;
+
 describe("App static routing", () => {
-  it("renders dashboard on /", () => {
-    renderApp(["/"]);
+  it.each(routeHeadingCases)("renders $path", ({ path, heading }) => {
+    renderApp([path]);
 
-    const navigation = screen.getByRole("navigation", { name: "主要導航" });
-
-    expect(screen.getByRole("heading", { name: "儀表板" })).toBeInTheDocument();
-    const currentPageLinks = within(navigation).getAllByRole("link", {
-      current: "page"
-    });
-
-    expect(currentPageLinks).toHaveLength(1);
-    expect(currentPageLinks[0]).toHaveTextContent("儀表板");
-  });
-
-  it("renders ProjectsPage on /projects", () => {
-    renderApp(["/projects"]);
-
-    expect(screen.getByRole("heading", { name: "專案管理" })).toBeInTheDocument();
-  });
-
-  it("renders TasksPage on /tasks", () => {
-    renderApp(["/tasks"]);
-
-    expect(screen.getByRole("heading", { name: "任務管理" })).toBeInTheDocument();
-  });
-
-  it("renders ClientsPage on /clients", () => {
-    renderApp(["/clients"]);
-
-    expect(screen.getByRole("heading", { name: "客戶管理" })).toBeInTheDocument();
-  });
-
-  it("renders FilesPage on /files", () => {
-    renderApp(["/files"]);
-
-    expect(screen.getByRole("heading", { name: "檔案" })).toBeInTheDocument();
-  });
-
-  it("renders HelpPage on /help", () => {
-    renderApp(["/help"]);
-
-    expect(screen.getByRole("heading", { name: "說明" })).toBeInTheDocument();
-  });
-
-  it("renders InvoicesPage on /invoices", () => {
-    renderApp(["/invoices"]);
-
-    expect(screen.getByRole("heading", { name: "收款管理" })).toBeInTheDocument();
-  });
-
-  it("renders SettingsPage on /settings", () => {
-    renderApp(["/settings"]);
-
-    expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument();
-  });
-
-  it("renders ReportsPage on /reports", () => {
-    renderApp(["/reports"]);
-
-    expect(screen.getByRole("heading", { name: "報表" })).toBeInTheDocument();
-  });
-
-  it("renders CalendarPage on /calendar", () => {
-    renderApp(["/calendar"]);
-
-    expect(screen.getByRole("heading", { name: "行事曆" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
   });
 
   it("renders NotFoundPage on unknown route", () => {
@@ -96,50 +69,20 @@ describe("App static routing", () => {
     expect(screen.getByText("回到儀表板")).toBeInTheDocument();
   });
 
-  it("navigates between main routes from sidebar and updates active item", async () => {
+  it("navigates through all sidebar routes and keeps a single active link", async () => {
     const user = userEvent.setup();
 
     renderApp(["/"]);
 
     const navigation = screen.getByRole("navigation", { name: "主要導航" });
 
-    const dashboardLink = within(navigation).getByRole("link", { name: "儀表板" });
-    const projectsLink = within(navigation).getByRole("link", { name: "專案" });
-    const tasksLink = within(navigation).getByRole("link", { name: "任務" });
-    const filesLink = within(navigation).getByRole("link", { name: "檔案" });
-    const helpLink = within(navigation).getByRole("link", { name: "說明" });
-    const calendarLink = within(navigation).getByRole("link", { name: "行事曆" });
-    const reportsLink = within(navigation).getByRole("link", { name: "報表" });
-    const settingsLink = within(navigation).getByRole("link", { name: "設定" });
+    for (const { label, heading } of sidebarNavigationCases) {
+      const targetLink = within(navigation).getByRole("link", { name: label });
 
-    expect(dashboardLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(projectsLink);
-    expect(screen.getByRole("heading", { name: "專案管理" })).toBeInTheDocument();
-    expect(projectsLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(tasksLink);
-    expect(screen.getByRole("heading", { name: "任務管理" })).toBeInTheDocument();
-    expect(tasksLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(filesLink);
-    expect(screen.getByRole("heading", { name: "檔案" })).toBeInTheDocument();
-    expect(filesLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(helpLink);
-    expect(screen.getByRole("heading", { name: "說明" })).toBeInTheDocument();
-    expect(helpLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(calendarLink);
-    expect(screen.getByRole("heading", { name: "行事曆" })).toBeInTheDocument();
-    expect(calendarLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(reportsLink);
-    expect(screen.getByRole("heading", { name: "報表" })).toBeInTheDocument();
-    expect(reportsLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(settingsLink);
-    expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument();
-    expect(settingsLink).toHaveAttribute("aria-current", "page");
+      await user.click(targetLink);
+      expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+      expect(targetLink).toHaveAttribute("aria-current", "page");
+      assertSingleActiveLink(navigation, label);
+    }
   });
 });
