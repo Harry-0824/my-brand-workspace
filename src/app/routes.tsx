@@ -1,0 +1,135 @@
+import type { ReactElement } from "react";
+import { DashboardContent } from "../components/dashboard/DashboardContent";
+import { CalendarPage } from "../pages/CalendarPage";
+import { ClientsPage } from "../pages/ClientsPage";
+import { FilesPage } from "../pages/FilesPage";
+import { HelpPage } from "../pages/HelpPage";
+import { InvoicesPage } from "../pages/InvoicesPage";
+import { NotFoundPage } from "../pages/NotFoundPage";
+import { ProjectsPage } from "../pages/ProjectsPage";
+import { ReportsPage } from "../pages/ReportsPage";
+import { SettingsPage } from "../pages/SettingsPage";
+import { TasksPage } from "../pages/TasksPage";
+
+type AppRoutePath =
+  | "/"
+  | "/projects"
+  | "/tasks"
+  | "/clients"
+  | "/files"
+  | "/help"
+  | "/invoices"
+  | "/calendar"
+  | "/reports"
+  | "/settings"
+  | "*";
+
+export type AppRouteMeta = {
+  heading: string;
+  label: string | null;
+  path: AppRoutePath;
+  showInSidebar: boolean;
+  key: string;
+  element: ReactElement;
+};
+
+export const APP_ROUTES: AppRouteMeta[] = [
+  {
+    key: "dashboard",
+    path: "/",
+    label: "儀表板",
+    heading: "儀表板",
+    showInSidebar: true,
+    element: <DashboardContent />
+  },
+  {
+    key: "projects",
+    path: "/projects",
+    label: "專案",
+    heading: "專案管理",
+    showInSidebar: true,
+    element: <ProjectsPage />
+  },
+  {
+    key: "tasks",
+    path: "/tasks",
+    label: "任務",
+    heading: "任務管理",
+    showInSidebar: true,
+    element: <TasksPage />
+  },
+  {
+    key: "clients",
+    path: "/clients",
+    label: "客戶",
+    heading: "客戶管理",
+    showInSidebar: true,
+    element: <ClientsPage />
+  },
+  {
+    key: "files",
+    path: "/files",
+    label: "檔案",
+    heading: "檔案",
+    showInSidebar: true,
+    element: <FilesPage />
+  },
+  {
+    key: "help",
+    path: "/help",
+    label: "說明",
+    heading: "說明",
+    showInSidebar: true,
+    element: <HelpPage />
+  },
+  {
+    key: "invoices",
+    path: "/invoices",
+    label: "收款",
+    heading: "收款管理",
+    showInSidebar: true,
+    element: <InvoicesPage />
+  },
+  {
+    key: "calendar",
+    path: "/calendar",
+    label: "行事曆",
+    heading: "行事曆",
+    showInSidebar: true,
+    element: <CalendarPage />
+  },
+  {
+    key: "reports",
+    path: "/reports",
+    label: "報表",
+    heading: "報表",
+    showInSidebar: true,
+    element: <ReportsPage />
+  },
+  {
+    key: "settings",
+    path: "/settings",
+    label: "設定",
+    heading: "設定",
+    showInSidebar: true,
+    element: <SettingsPage />
+  },
+  {
+    key: "not-found",
+    path: "*",
+    label: null,
+    heading: "找不到頁面",
+    showInSidebar: false,
+    element: <NotFoundPage />
+  }
+];
+
+export const SIDEBAR_ROUTES = APP_ROUTES.filter((route) => route.showInSidebar);
+export const ROUTE_HEADING_CASES = APP_ROUTES.filter((route) => route.path !== "*").map((route) => ({
+  path: route.path,
+  heading: route.heading
+}));
+export const SIDEBAR_NAVIGATION_CASES = SIDEBAR_ROUTES.map((route) => ({
+  label: route.label as string,
+  heading: route.heading
+}));
