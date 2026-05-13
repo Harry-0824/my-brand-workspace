@@ -1,54 +1,54 @@
 export const dashboardQuickActions = [
   {
     title: "前往專案",
-    description: "查看專案進度與近期交付安排。",
+    description: "查看專案進度與下一步安排。",
     to: "/projects",
-    tag: "核心"
+    tag: "專案"
   },
   {
     title: "前往任務",
-    description: "掌握待辦與本週優先處理項目。",
+    description: "快速處理本週待辦與進行中任務。",
     to: "/tasks",
-    tag: "執行"
+    tag: "任務"
   },
   {
     title: "前往客戶",
-    description: "快速檢查客戶狀態與追蹤節點。",
+    description: "追蹤合作狀態與近期聯絡重點。",
     to: "/clients",
-    tag: "追蹤"
+    tag: "客戶"
   },
   {
     title: "前往收款",
-    description: "查看待收款與發票進度示意。",
+    description: "檢查待收款與發票狀態。",
     to: "/invoices",
-    tag: "財務"
+    tag: "收款"
   },
   {
     title: "前往行事曆",
-    description: "確認近期會議、里程碑與排程。",
+    description: "安排本週時段與交付節點。",
     to: "/calendar",
     tag: "排程"
   },
   {
     title: "前往檔案",
-    description: "檢視素材、交付檔案與版本整理。",
+    description: "整理近期文件與交付素材。",
     to: "/files",
-    tag: "交付"
+    tag: "檔案"
   }
 ] as const;
 
 export const dashboardWorkspaceSnapshot = [
-  { label: "進行中專案", value: "4", note: "本週有 2 個交付節點" },
-  { label: "待處理任務", value: "12", note: "其中 4 項為高優先" },
-  { label: "合作中客戶", value: "4", note: "1 位待回覆確認" },
-  { label: "待收款項目", value: "3", note: "本週優先追蹤 2 項" },
-  { label: "近期行程", value: "5", note: "含會議與里程碑檢查" },
-  { label: "可交付檔案", value: "17", note: "已整理主要版本" }
+  { label: "進行中專案數", value: "4", note: "與專案頁靜態清單一致" },
+  { label: "目前任務數", value: "6", note: "與任務頁靜態清單一致" },
+  { label: "合作中客戶數", value: "4", note: "與客戶頁靜態清單一致" },
+  { label: "收款項目數", value: "4", note: "與收款頁靜態清單一致" },
+  { label: "本週時程項目", value: "5", note: "依本週排程區塊統計" },
+  { label: "近期檔案數", value: "17", note: "依檔案頁靜態資料顯示" }
 ] as const;
 
 export const dashboardWeekFocus = [
-  "完成專案首頁視覺確認與備註整理",
-  "更新本週任務優先順序與到期提醒",
-  "回覆待確認客戶並同步下一步時程",
-  "檢查待收款項目與發票狀態一致性"
+  "完成專案交付前的最終檢查與回報。",
+  "優先處理本週到期任務與待審核項目。",
+  "同步追蹤收款狀態與客戶回覆節奏。",
+  "整理本週檔案與交付素材，保持可追蹤性。"
 ] as const;
