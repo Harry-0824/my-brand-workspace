@@ -6,6 +6,7 @@ import {
 } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
+import { PageResultCount } from "../components/page/PageResultCount";
 import {
   PageDescription,
   PageHeader,
@@ -141,6 +142,12 @@ export function ProjectsPage() {
           />
           <AddButton type="button">新增專案</AddButton>
         </ToolbarRow>
+        <PageResultCount
+          testId="projects-result-count"
+          visible={visibleRows.length}
+          total={projectRows.length}
+          noun="專案"
+        />
 
         {visibleRows.length > 0 ? (
           <Rows>

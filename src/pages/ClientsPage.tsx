@@ -7,6 +7,7 @@ import {
 } from "../components/page/PageShell";
 import { useState } from "react";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
+import { PageResultCount } from "../components/page/PageResultCount";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageMetricCard,
@@ -85,6 +86,12 @@ export function ClientsPage() {
           <FilterPreview>全部狀態</FilterPreview>
           <AddButton type="button">新增客戶</AddButton>
         </ToolbarRow>
+        <PageResultCount
+          testId="clients-result-count"
+          visible={visibleRows.length}
+          total={clientRows.length}
+          noun="客戶"
+        />
 
         {visibleRows.length > 0 ? (
           <Rows>

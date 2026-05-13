@@ -25,6 +25,7 @@ describe("ClientsPage search", () => {
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
     expect(search.id).toBe("clients-search-input");
+    expect(screen.getByTestId("clients-result-count")).toHaveTextContent("4 / 4");
   });
 
   it("filters visible client rows by keyword and restores when cleared", () => {
@@ -36,14 +37,17 @@ describe("ClientsPage search", () => {
     fireEvent.change(search, { target: { value: "flowmart" } });
     expect(screen.getByText("FlowMart")).toBeInTheDocument();
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(1);
+    expect(screen.getByTestId("clients-result-count")).toHaveTextContent("1 / 4");
 
     fireEvent.change(search, { target: { value: "no-match-keyword" } });
     expect(screen.queryAllByTestId("clients-status-badge")).toHaveLength(0);
     expect(screen.getByTestId("clients-empty-state")).toBeInTheDocument();
+    expect(screen.getByTestId("clients-result-count")).toHaveTextContent("0 / 4");
 
     fireEvent.change(search, { target: { value: "" } });
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(
       allRowsCount
     );
+    expect(screen.getByTestId("clients-result-count")).toHaveTextContent("4 / 4");
   });
 });

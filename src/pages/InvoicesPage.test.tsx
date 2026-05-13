@@ -29,5 +29,6 @@ describe("InvoicesPage filters", () => {
     expect(search.id).toBe("invoices-search-input");
     expect(filter.id).toBe("invoices-status-filter");
     expect(Array.from(filter.options).some((option) => option.value === "__ALL__")).toBe(true);
+    expect(screen.getByTestId("invoices-result-count")).toHaveTextContent("4 / 4");
   });
 });
