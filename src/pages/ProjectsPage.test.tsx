@@ -31,6 +31,7 @@ describe("ProjectsPage search and filters", () => {
     expect(
       Array.from(filter.options).some((option) => option.value === "__ALL__")
     ).toBe(true);
+    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("4 / 4");
   });
 
   it("shows empty state when search and filter produce zero rows", () => {
@@ -41,6 +42,7 @@ describe("ProjectsPage search and filters", () => {
 
     fireEvent.change(search, { target: { value: "bright" } });
     expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(1);
+    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("1 / 4");
 
     const activeStatus = screen.getByTestId("projects-status-badge").textContent;
     const anotherStatus = Array.from(filter.options)
@@ -52,6 +54,7 @@ describe("ProjectsPage search and filters", () => {
 
     expect(screen.queryAllByTestId("projects-status-badge")).toHaveLength(0);
     expect(screen.getByTestId("projects-empty-state")).toBeInTheDocument();
+    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("0 / 4");
   });
 
   it("restores rows after resetting filter and clearing search", () => {
@@ -73,10 +76,12 @@ describe("ProjectsPage search and filters", () => {
 
     fireEvent.change(filter, { target: { value: "__ALL__" } });
     expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(1);
+    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("1 / 4");
 
     fireEvent.change(search, { target: { value: "" } });
     expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(
       allRowsCount
     );
+    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("4 / 4");
   });
 });

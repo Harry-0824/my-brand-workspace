@@ -6,6 +6,7 @@ import {
 } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
+import { PageResultCount } from "../components/page/PageResultCount";
 import {
   PageDescription,
   PageHeader,
@@ -150,6 +151,12 @@ export function TasksPage() {
           />
           <AddButton type="button">新增任務</AddButton>
         </ToolbarRow>
+        <PageResultCount
+          testId="tasks-result-count"
+          visible={visibleRows.length}
+          total={taskRows.length}
+          noun="任務"
+        />
 
         {visibleRows.length > 0 ? (
           <Rows>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ALL_FILTER_VALUE, PageFilterControl } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
+import { PageResultCount } from "../components/page/PageResultCount";
 import {
   PageDescription,
   PageHeader,
@@ -98,6 +99,12 @@ export function InvoicesPage() {
           />
           <AddButton type="button">新增發票草稿</AddButton>
         </ToolbarRow>
+        <PageResultCount
+          testId="invoices-result-count"
+          visible={visibleRows.length}
+          total={invoiceRows.length}
+          noun="收款項目"
+        />
 
         {visibleRows.length > 0 ? (
           <Rows>
