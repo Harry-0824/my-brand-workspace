@@ -8,6 +8,7 @@ import { PageSearchInput } from "../components/page/PageSearchInput";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import { PageResultCount } from "../components/page/PageResultCount";
 import { PageResetControl } from "../components/page/PageResetControl";
+import { PageListSummaryRow } from "../components/page/PageListSummaryRow";
 import {
   PageDescription,
   PageHeader,
@@ -159,7 +160,7 @@ export function TasksPage() {
           />
           <AddButton type="button">新增任務</AddButton>
         </ToolbarRow>
-        <SummaryRow>
+        <PageListSummaryRow>
           <PageResultCount
             testId="tasks-result-count"
             visible={visibleRows.length}
@@ -171,7 +172,7 @@ export function TasksPage() {
             disabled={!hasActiveCriteria}
             onClick={handleReset}
           />
-        </SummaryRow>
+        </PageListSummaryRow>
 
         {visibleRows.length > 0 ? (
           <Rows>
@@ -235,13 +236,6 @@ const AddButton = styled.button`
   font-weight: 700;
 `;
 
-const SummaryRow = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
 
 const Rows = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
