@@ -5,6 +5,7 @@ import {
   PageFilterControl
 } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
+import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import {
   PageDescription,
   PageHeader,
@@ -150,23 +151,31 @@ export function TasksPage() {
           <AddButton type="button">新增任務</AddButton>
         </ToolbarRow>
 
-        <Rows>
-          {visibleRows.map((item) => (
-            <Row key={`${item.task}-${item.dueDate}`}>
-              <RowTop>
-                <TaskName>{item.task}</TaskName>
-                <StatusBadge data-testid="tasks-status-badge">
-                  {item.status}
-                </StatusBadge>
-              </RowTop>
-              <RowMeta>
-                <MetaText>{item.project}</MetaText>
-                <MetaText>{item.priority}</MetaText>
-                <MetaText>{item.dueDate}</MetaText>
-              </RowMeta>
-            </Row>
-          ))}
-        </Rows>
+        {visibleRows.length > 0 ? (
+          <Rows>
+            {visibleRows.map((item) => (
+              <Row key={`${item.task}-${item.dueDate}`}>
+                <RowTop>
+                  <TaskName>{item.task}</TaskName>
+                  <StatusBadge data-testid="tasks-status-badge">
+                    {item.status}
+                  </StatusBadge>
+                </RowTop>
+                <RowMeta>
+                  <MetaText>{item.project}</MetaText>
+                  <MetaText>{item.priority}</MetaText>
+                  <MetaText>{item.dueDate}</MetaText>
+                </RowMeta>
+              </Row>
+            ))}
+          </Rows>
+        ) : (
+          <PageListEmptyState
+            testId="tasks-empty-state"
+            title="目前沒有符合條件的任務"
+            description="請調整關鍵字或狀態篩選條件，再試一次。"
+          />
+        )}
 
         <DistributionText>任務狀態分布：待處理、進行中、待審核、已完成。</DistributionText>
       </DashboardPanel>

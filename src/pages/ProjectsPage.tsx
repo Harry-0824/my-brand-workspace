@@ -5,6 +5,7 @@ import {
   PageFilterControl
 } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
+import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import {
   PageDescription,
   PageHeader,
@@ -141,24 +142,32 @@ export function ProjectsPage() {
           <AddButton type="button">新增專案</AddButton>
         </ToolbarRow>
 
-        <Rows>
-          {visibleRows.map((item) => (
-            <Row key={item.project}>
-              <RowTop>
-                <ProjectName>{item.project}</ProjectName>
-                <StatusBadge data-testid="projects-status-badge">
-                  {item.status}
-                </StatusBadge>
-              </RowTop>
-              <RowMeta>
-                <MetaText>{item.client}</MetaText>
-                <MetaText>{item.progress}</MetaText>
-              </RowMeta>
-              <RowBody>{item.ownership}</RowBody>
-              <NextStep>{item.nextStep}</NextStep>
-            </Row>
-          ))}
-        </Rows>
+        {visibleRows.length > 0 ? (
+          <Rows>
+            {visibleRows.map((item) => (
+              <Row key={item.project}>
+                <RowTop>
+                  <ProjectName>{item.project}</ProjectName>
+                  <StatusBadge data-testid="projects-status-badge">
+                    {item.status}
+                  </StatusBadge>
+                </RowTop>
+                <RowMeta>
+                  <MetaText>{item.client}</MetaText>
+                  <MetaText>{item.progress}</MetaText>
+                </RowMeta>
+                <RowBody>{item.ownership}</RowBody>
+                <NextStep>{item.nextStep}</NextStep>
+              </Row>
+            ))}
+          </Rows>
+        ) : (
+          <PageListEmptyState
+            testId="projects-empty-state"
+            title="目前沒有符合條件的專案"
+            description="請調整關鍵字或狀態篩選條件，再試一次。"
+          />
+        )}
       </DashboardPanel>
 
       <PageNextStep

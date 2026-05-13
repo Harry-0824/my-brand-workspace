@@ -6,6 +6,7 @@ import {
   PageTitle
 } from "../components/page/PageShell";
 import { useState } from "react";
+import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageMetricCard,
@@ -85,23 +86,31 @@ export function ClientsPage() {
           <AddButton type="button">新增客戶</AddButton>
         </ToolbarRow>
 
-        <Rows>
-          {visibleRows.map((item) => (
-            <Row key={item.name}>
-              <RowTop>
-                <ClientName>{item.name}</ClientName>
-                <StatusBadge data-testid="clients-status-badge">
-                  {item.status}
-                </StatusBadge>
-              </RowTop>
-              <RowMeta>
-                <MetaText>{item.projects}</MetaText>
-                <MetaText>{item.lastContact}</MetaText>
-                <MetaText>{item.nextStep}</MetaText>
-              </RowMeta>
-            </Row>
-          ))}
-        </Rows>
+        {visibleRows.length > 0 ? (
+          <Rows>
+            {visibleRows.map((item) => (
+              <Row key={item.name}>
+                <RowTop>
+                  <ClientName>{item.name}</ClientName>
+                  <StatusBadge data-testid="clients-status-badge">
+                    {item.status}
+                  </StatusBadge>
+                </RowTop>
+                <RowMeta>
+                  <MetaText>{item.projects}</MetaText>
+                  <MetaText>{item.lastContact}</MetaText>
+                  <MetaText>{item.nextStep}</MetaText>
+                </RowMeta>
+              </Row>
+            ))}
+          </Rows>
+        ) : (
+          <PageListEmptyState
+            testId="clients-empty-state"
+            title="目前沒有符合條件的客戶"
+            description="請調整關鍵字後再試一次。"
+          />
+        )}
 
         <ReminderText>
           客戶追蹤提醒：優先處理本週需要回覆或確認的合作對象。
