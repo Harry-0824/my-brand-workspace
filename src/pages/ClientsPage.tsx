@@ -11,6 +11,7 @@ import {
   PageMetricLabel,
   PageMetricValue
 } from "../components/page/PageContentPrimitives";
+import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import { clientRows, summaryMetrics } from "./data/clientsPageData";
@@ -76,6 +77,17 @@ export function ClientsPage() {
           客戶追蹤提醒：優先處理本週需要回覆或確認的合作對象。
         </ReminderText>
       </DashboardPanel>
+
+      <PageNextStep
+        titleId="clients-next-step-title"
+        title="下一步建議"
+        description="看完客戶狀態後，建議直接前往相關工作頁面。"
+        links={[
+          { label: "前往專案頁面，確認合作項目進度", to: "/projects" },
+          { label: "前往收款頁面，檢查待收款與發票", to: "/invoices" }
+        ]}
+        note="維持每週一次客戶追蹤節奏，可降低交付與溝通落差。"
+      />
     </PageMain>
   );
 }

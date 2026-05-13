@@ -10,6 +10,7 @@ import {
   PageListCard,
   PageNote
 } from "../components/page/PageContentPrimitives";
+import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import {
@@ -109,6 +110,16 @@ export function CalendarPage() {
           週初先確認交付里程碑與客戶會議時段，週末前預留半天處理逾期項目與下週排程。
         </Note>
       </DashboardPanel>
+
+      <PageNextStep
+        titleId="calendar-next-step-title"
+        title="下一步建議"
+        description="排程檢查完成後，建議立即同步任務與專案頁面。"
+        links={[
+          { label: "前往任務頁面，更新本週待辦", to: "/tasks" },
+          { label: "前往專案頁面，確認交付節點", to: "/projects" }
+        ]}
+      />
     </PageMain>
   );
 }

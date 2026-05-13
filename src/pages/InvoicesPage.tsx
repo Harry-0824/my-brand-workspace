@@ -11,6 +11,7 @@ import {
   PageMetricLabel,
   PageMetricValue
 } from "../components/page/PageContentPrimitives";
+import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import { invoiceRows, summaryMetrics } from "./data/invoicesPageData";
@@ -74,6 +75,17 @@ export function InvoicesPage() {
 
         <ReminderText>收款提醒：優先追蹤本週到期與待開立發票的項目。</ReminderText>
       </DashboardPanel>
+
+      <PageNextStep
+        titleId="invoices-next-step-title"
+        title="下一步建議"
+        description="收款狀態確認後，可直接切到關聯頁面延續工作流程。"
+        links={[
+          { label: "前往客戶頁面，確認待回覆對象", to: "/clients" },
+          { label: "前往報表頁面，快速檢查收款快照", to: "/reports" }
+        ]}
+        note="建議先處理待收款，再同步更新本週追蹤清單。"
+      />
     </PageMain>
   );
 }

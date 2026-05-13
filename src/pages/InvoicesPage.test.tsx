@@ -1,4 +1,5 @@
 ﻿import { cleanup, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { afterEach, describe, expect, it } from "vitest";
 import { InvoicesPage } from "./InvoicesPage";
@@ -10,9 +11,11 @@ afterEach(() => {
 
 function renderInvoicesPage() {
   render(
-    <ThemeProvider theme={theme}>
-      <InvoicesPage />
-    </ThemeProvider>
+    <MemoryRouter>
+      <ThemeProvider theme={theme}>
+        <InvoicesPage />
+      </ThemeProvider>
+    </MemoryRouter>
   );
 }
 

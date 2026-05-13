@@ -11,6 +11,7 @@ import {
   PageMetricLabel,
   PageMetricValue
 } from "../components/page/PageContentPrimitives";
+import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 
@@ -124,6 +125,15 @@ export function TasksPage() {
 
         <DistributionText>任務狀態分布：待處理、進行中、待審核、已完成。</DistributionText>
       </DashboardPanel>
+      <PageNextStep
+        titleId="tasks-next-step-title"
+        title="下一步建議"
+        description="確認任務分布後，建議前往專案與行事曆同步進度。"
+        links={[
+          { label: "前往專案頁面，對齊任務與交付目標", to: "/projects" },
+          { label: "前往行事曆頁面，安排本週時段", to: "/calendar" }
+        ]}
+      />
     </PageMain>
   );
 }
