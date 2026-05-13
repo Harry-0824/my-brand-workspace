@@ -1,4 +1,6 @@
 ﻿import styled from "styled-components";
+import { useState } from "react";
+import { ALL_FILTER_VALUE, PageFilterControl } from "../components/page/PageFilterControl";
 import {
   PageDescription,
   PageHeader,
@@ -17,6 +19,13 @@ import { DashboardSectionHeader } from "../components/dashboard/shared/Dashboard
 import { invoiceRows, summaryMetrics } from "./data/invoicesPageData";
 
 export function InvoicesPage() {
+  const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
+  const statusOptions = Array.from(new Set(invoiceRows.map((item) => item.status)));
+  const visibleRows =
+    statusFilter === ALL_FILTER_VALUE
+      ? invoiceRows
+      : invoiceRows.filter((item) => item.status === statusFilter);
+
   return (
     <PageMain aria-labelledby="invoices-page-title">
       <PageHeader>
@@ -53,16 +62,24 @@ export function InvoicesPage() {
 
         <ToolbarRow>
           <SearchPreview>搜尋客戶或項目...</SearchPreview>
-          <FilterPreview>全部狀態</FilterPreview>
+          <PageFilterControl
+            id="invoices-status-filter"
+            label="收款狀態篩選"
+            options={statusOptions}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
           <AddButton type="button">新增發票草稿</AddButton>
         </ToolbarRow>
 
         <Rows>
-          {invoiceRows.map((item) => (
+          {visibleRows.map((item) => (
             <Row key={`${item.client}-${item.item}`}>
               <RowTop>
                 <ClientName>{item.client}</ClientName>
-                <StatusBadge>{item.status}</StatusBadge>
+                <StatusBadge data-testid="invoices-status-badge">
+                  {item.status}
+                </StatusBadge>
               </RowTop>
               <RowMeta>
                 <MetaText>{item.item}</MetaText>
@@ -109,16 +126,6 @@ const SearchPreview = styled.div`
   color: ${({ theme }) => theme.textSecondary};
   background: rgb(255 255 255 / 0.02);
   font-size: 0.9rem;
-`;
-
-const FilterPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textPrimary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
-  text-align: center;
 `;
 
 const AddButton = styled.button`

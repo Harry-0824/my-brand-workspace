@@ -1,4 +1,9 @@
+import { useState } from "react";
 import styled from "styled-components";
+import {
+  ALL_FILTER_VALUE,
+  PageFilterControl
+} from "../components/page/PageFilterControl";
 import {
   PageDescription,
   PageHeader,
@@ -58,6 +63,13 @@ const projectRows = [
 ] as const;
 
 export function ProjectsPage() {
+  const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
+  const statusOptions = Array.from(new Set(projectRows.map((item) => item.status)));
+  const visibleRows =
+    statusFilter === ALL_FILTER_VALUE
+      ? projectRows
+      : projectRows.filter((item) => item.status === statusFilter);
+
   return (
     <PageMain aria-labelledby="projects-page-title">
       <PageHeader>
@@ -92,16 +104,24 @@ export function ProjectsPage() {
 
         <ToolbarRow>
           <SearchPreview>搜尋專案或客戶...</SearchPreview>
-          <FilterPreview>全部狀態</FilterPreview>
+          <PageFilterControl
+            id="projects-status-filter"
+            label="專案狀態篩選"
+            options={statusOptions}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
           <AddButton type="button">新增專案</AddButton>
         </ToolbarRow>
 
         <Rows>
-          {projectRows.map((item) => (
+          {visibleRows.map((item) => (
             <Row key={item.project}>
               <RowTop>
                 <ProjectName>{item.project}</ProjectName>
-                <StatusBadge>{item.status}</StatusBadge>
+                <StatusBadge data-testid="projects-status-badge">
+                  {item.status}
+                </StatusBadge>
               </RowTop>
               <RowMeta>
                 <MetaText>{item.client}</MetaText>
@@ -146,16 +166,6 @@ const SearchPreview = styled.div`
   color: ${({ theme }) => theme.textSecondary};
   background: rgb(255 255 255 / 0.02);
   font-size: 0.9rem;
-`;
-
-const FilterPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textPrimary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
-  text-align: center;
 `;
 
 const AddButton = styled.button`
