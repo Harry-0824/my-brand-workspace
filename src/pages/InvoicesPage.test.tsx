@@ -20,10 +20,13 @@ function renderInvoicesPage() {
 }
 
 describe("InvoicesPage filters", () => {
-  it("renders an invoice status filter with an all option", () => {
+  it("renders search input and invoice status filter with an all option", () => {
     renderInvoicesPage();
 
+    const search = screen.getByRole("textbox") as HTMLInputElement;
     const filter = screen.getByRole("combobox") as HTMLSelectElement;
+
+    expect(search.id).toBe("invoices-search-input");
     expect(filter.id).toBe("invoices-status-filter");
     expect(Array.from(filter.options).some((option) => option.value === "__ALL__")).toBe(true);
   });

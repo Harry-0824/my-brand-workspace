@@ -4,6 +4,7 @@ import {
   ALL_FILTER_VALUE,
   PageFilterControl
 } from "../components/page/PageFilterControl";
+import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageDescription,
   PageHeader,
@@ -63,12 +64,32 @@ const projectRows = [
 ] as const;
 
 export function ProjectsPage() {
+  const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
   const statusOptions = Array.from(new Set(projectRows.map((item) => item.status)));
-  const visibleRows =
+  const rowsAfterFilter =
     statusFilter === ALL_FILTER_VALUE
       ? projectRows
       : projectRows.filter((item) => item.status === statusFilter);
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const visibleRows = rowsAfterFilter.filter((item) => {
+    if (!normalizedKeyword) {
+      return true;
+    }
+
+    const searchableText = [
+      item.project,
+      item.client,
+      item.status,
+      item.progress,
+      item.ownership,
+      item.nextStep
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(normalizedKeyword);
+  });
 
   return (
     <PageMain aria-labelledby="projects-page-title">
@@ -103,7 +124,13 @@ export function ProjectsPage() {
         />
 
         <ToolbarRow>
-          <SearchPreview>搜尋專案或客戶...</SearchPreview>
+          <PageSearchInput
+            id="projects-search-input"
+            label="專案關鍵字搜尋"
+            value={keyword}
+            placeholder="搜尋專案名稱或客戶..."
+            onChange={setKeyword}
+          />
           <PageFilterControl
             id="projects-status-filter"
             label="專案狀態篩選"
@@ -157,15 +184,6 @@ const ToolbarRow = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const SearchPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
 `;
 
 const AddButton = styled.button`

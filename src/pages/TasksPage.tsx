@@ -4,6 +4,7 @@ import {
   ALL_FILTER_VALUE,
   PageFilterControl
 } from "../components/page/PageFilterControl";
+import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageDescription,
   PageHeader,
@@ -73,12 +74,31 @@ const taskRows = [
 ] as const;
 
 export function TasksPage() {
+  const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
   const statusOptions = Array.from(new Set(taskRows.map((item) => item.status)));
-  const visibleRows =
+  const rowsAfterFilter =
     statusFilter === ALL_FILTER_VALUE
       ? taskRows
       : taskRows.filter((item) => item.status === statusFilter);
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const visibleRows = rowsAfterFilter.filter((item) => {
+    if (!normalizedKeyword) {
+      return true;
+    }
+
+    const searchableText = [
+      item.task,
+      item.project,
+      item.status,
+      item.priority,
+      item.dueDate
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(normalizedKeyword);
+  });
 
   return (
     <PageMain aria-labelledby="tasks-page-title">
@@ -113,7 +133,13 @@ export function TasksPage() {
         />
 
         <ToolbarRow>
-          <SearchPreview>搜尋任務或專案...</SearchPreview>
+          <PageSearchInput
+            id="tasks-search-input"
+            label="任務關鍵字搜尋"
+            value={keyword}
+            placeholder="搜尋任務、專案或狀態..."
+            onChange={setKeyword}
+          />
           <PageFilterControl
             id="tasks-status-filter"
             label="任務狀態篩選"
@@ -167,15 +193,6 @@ const ToolbarRow = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const SearchPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
 `;
 
 const AddButton = styled.button`

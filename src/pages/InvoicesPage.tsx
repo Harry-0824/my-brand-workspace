@@ -1,6 +1,7 @@
 ﻿import styled from "styled-components";
 import { useState } from "react";
 import { ALL_FILTER_VALUE, PageFilterControl } from "../components/page/PageFilterControl";
+import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageDescription,
   PageHeader,
@@ -19,12 +20,31 @@ import { DashboardSectionHeader } from "../components/dashboard/shared/Dashboard
 import { invoiceRows, summaryMetrics } from "./data/invoicesPageData";
 
 export function InvoicesPage() {
+  const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
   const statusOptions = Array.from(new Set(invoiceRows.map((item) => item.status)));
-  const visibleRows =
+  const rowsAfterFilter =
     statusFilter === ALL_FILTER_VALUE
       ? invoiceRows
       : invoiceRows.filter((item) => item.status === statusFilter);
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const visibleRows = rowsAfterFilter.filter((item) => {
+    if (!normalizedKeyword) {
+      return true;
+    }
+
+    const searchableText = [
+      item.client,
+      item.item,
+      item.amount,
+      item.status,
+      item.due
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(normalizedKeyword);
+  });
 
   return (
     <PageMain aria-labelledby="invoices-page-title">
@@ -61,7 +81,13 @@ export function InvoicesPage() {
         />
 
         <ToolbarRow>
-          <SearchPreview>搜尋客戶或項目...</SearchPreview>
+          <PageSearchInput
+            id="invoices-search-input"
+            label="收款關鍵字搜尋"
+            value={keyword}
+            placeholder="搜尋客戶、項目或金額..."
+            onChange={setKeyword}
+          />
           <PageFilterControl
             id="invoices-status-filter"
             label="收款狀態篩選"
@@ -117,15 +143,6 @@ const ToolbarRow = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const SearchPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
 `;
 
 const AddButton = styled.button`

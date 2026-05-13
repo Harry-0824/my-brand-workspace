@@ -5,6 +5,8 @@ import {
   PageMain,
   PageTitle
 } from "../components/page/PageShell";
+import { useState } from "react";
+import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageMetricCard,
   PageMetricGrid,
@@ -17,6 +19,26 @@ import { DashboardSectionHeader } from "../components/dashboard/shared/Dashboard
 import { clientRows, summaryMetrics } from "./data/clientsPageData";
 
 export function ClientsPage() {
+  const [keyword, setKeyword] = useState("");
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const visibleRows = clientRows.filter((item) => {
+    if (!normalizedKeyword) {
+      return true;
+    }
+
+    const searchableText = [
+      item.name,
+      item.status,
+      item.projects,
+      item.lastContact,
+      item.nextStep
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(normalizedKeyword);
+  });
+
   return (
     <PageMain aria-labelledby="clients-page-title">
       <PageHeader>
@@ -52,17 +74,25 @@ export function ClientsPage() {
         />
 
         <ToolbarRow>
-          <SearchPreview>搜尋客戶或公司...</SearchPreview>
+          <PageSearchInput
+            id="clients-search-input"
+            label="客戶關鍵字搜尋"
+            value={keyword}
+            placeholder="搜尋客戶、狀態或追蹤內容..."
+            onChange={setKeyword}
+          />
           <FilterPreview>全部狀態</FilterPreview>
           <AddButton type="button">新增客戶</AddButton>
         </ToolbarRow>
 
         <Rows>
-          {clientRows.map((item) => (
+          {visibleRows.map((item) => (
             <Row key={item.name}>
               <RowTop>
                 <ClientName>{item.name}</ClientName>
-                <StatusBadge>{item.status}</StatusBadge>
+                <StatusBadge data-testid="clients-status-badge">
+                  {item.status}
+                </StatusBadge>
               </RowTop>
               <RowMeta>
                 <MetaText>{item.projects}</MetaText>
@@ -102,15 +132,6 @@ const ToolbarRow = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const SearchPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
 `;
 
 const FilterPreview = styled.div`

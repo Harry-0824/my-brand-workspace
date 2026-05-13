@@ -20,10 +20,13 @@ function renderTasksPage() {
 }
 
 describe("TasksPage filters", () => {
-  it("renders a task status filter with an all option", () => {
+  it("renders search input and status filter with an all option", () => {
     renderTasksPage();
 
+    const search = screen.getByRole("textbox") as HTMLInputElement;
     const filter = screen.getByRole("combobox") as HTMLSelectElement;
+
+    expect(search.id).toBe("tasks-search-input");
     expect(filter.id).toBe("tasks-status-filter");
     expect(Array.from(filter.options).some((option) => option.value === "__ALL__")).toBe(true);
   });
