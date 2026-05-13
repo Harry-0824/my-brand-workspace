@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { ALL_FILTER_VALUE, PageFilterControl } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
+import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import {
   PageDescription,
   PageHeader,
@@ -98,23 +99,31 @@ export function InvoicesPage() {
           <AddButton type="button">新增發票草稿</AddButton>
         </ToolbarRow>
 
-        <Rows>
-          {visibleRows.map((item) => (
-            <Row key={`${item.client}-${item.item}`}>
-              <RowTop>
-                <ClientName>{item.client}</ClientName>
-                <StatusBadge data-testid="invoices-status-badge">
-                  {item.status}
-                </StatusBadge>
-              </RowTop>
-              <RowMeta>
-                <MetaText>{item.item}</MetaText>
-                <MetaText>{item.amount}</MetaText>
-                <MetaText>{item.due}</MetaText>
-              </RowMeta>
-            </Row>
-          ))}
-        </Rows>
+        {visibleRows.length > 0 ? (
+          <Rows>
+            {visibleRows.map((item) => (
+              <Row key={`${item.client}-${item.item}`}>
+                <RowTop>
+                  <ClientName>{item.client}</ClientName>
+                  <StatusBadge data-testid="invoices-status-badge">
+                    {item.status}
+                  </StatusBadge>
+                </RowTop>
+                <RowMeta>
+                  <MetaText>{item.item}</MetaText>
+                  <MetaText>{item.amount}</MetaText>
+                  <MetaText>{item.due}</MetaText>
+                </RowMeta>
+              </Row>
+            ))}
+          </Rows>
+        ) : (
+          <PageListEmptyState
+            testId="invoices-empty-state"
+            title="目前沒有符合條件的收款項目"
+            description="請調整關鍵字或狀態篩選條件，再試一次。"
+          />
+        )}
 
         <ReminderText>收款提醒：優先追蹤本週到期與待開立發票的項目。</ReminderText>
       </DashboardPanel>

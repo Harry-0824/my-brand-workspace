@@ -37,6 +37,10 @@ describe("ClientsPage search", () => {
     expect(screen.getByText("FlowMart")).toBeInTheDocument();
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(1);
 
+    fireEvent.change(search, { target: { value: "no-match-keyword" } });
+    expect(screen.queryAllByTestId("clients-status-badge")).toHaveLength(0);
+    expect(screen.getByTestId("clients-empty-state")).toBeInTheDocument();
+
     fireEvent.change(search, { target: { value: "" } });
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(
       allRowsCount
