@@ -106,7 +106,7 @@ export function InvoicesPage() {
             value={statusFilter}
             onChange={setStatusFilter}
           />
-          <AddButton type="button">新增發票草稿</AddButton>
+          <AddButton type="button">新增發票草稿（示意）</AddButton>
         </ToolbarRow>
         <PageListSummaryRow>
           <PageResultCount

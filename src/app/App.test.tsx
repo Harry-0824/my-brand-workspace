@@ -80,6 +80,19 @@ describe("App static routing", () => {
     expect(screen.getByRole("heading", { name: "專案管理" })).toBeInTheDocument();
   });
 
+  it("keeps key dashboard/page CTA links on expected routes", async () => {
+    const user = userEvent.setup();
+
+    renderApp(["/"]);
+    await user.click(screen.getByRole("link", { name: "quick-action-/invoices" }));
+    expect(screen.getByRole("heading", { name: "收款管理" })).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("link", { name: "前往報表頁面，快速檢查收款快照" })
+    );
+    expect(screen.getByRole("heading", { name: "報表" })).toBeInTheDocument();
+  });
+
   it.each(
     ROUTE_HEADING_CASES.map(({ path, heading }) => [
       path,
