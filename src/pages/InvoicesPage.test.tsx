@@ -25,10 +25,12 @@ describe("InvoicesPage filters", () => {
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
     const filter = screen.getByRole("combobox") as HTMLSelectElement;
+    const reset = screen.getByTestId("invoices-reset-control") as HTMLButtonElement;
 
     expect(search.id).toBe("invoices-search-input");
     expect(filter.id).toBe("invoices-status-filter");
     expect(Array.from(filter.options).some((option) => option.value === "__ALL__")).toBe(true);
     expect(screen.getByTestId("invoices-result-count")).toHaveTextContent("4 / 4");
+    expect(reset).toBeDisabled();
   });
 });

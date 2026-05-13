@@ -25,10 +25,12 @@ describe("TasksPage filters", () => {
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
     const filter = screen.getByRole("combobox") as HTMLSelectElement;
+    const reset = screen.getByTestId("tasks-reset-control") as HTMLButtonElement;
 
     expect(search.id).toBe("tasks-search-input");
     expect(filter.id).toBe("tasks-status-filter");
     expect(Array.from(filter.options).some((option) => option.value === "__ALL__")).toBe(true);
     expect(screen.getByTestId("tasks-result-count")).toHaveTextContent("6 / 6");
+    expect(reset).toBeDisabled();
   });
 });

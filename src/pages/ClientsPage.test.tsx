@@ -24,30 +24,37 @@ describe("ClientsPage search", () => {
     renderClientsPage();
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
+    const reset = screen.getByTestId("clients-reset-control") as HTMLButtonElement;
     expect(search.id).toBe("clients-search-input");
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("4 / 4");
+    expect(reset).toBeDisabled();
   });
 
-  it("filters visible client rows by keyword and restores when cleared", () => {
+  it("resets search-only criteria on clients page", () => {
     renderClientsPage();
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
+    const reset = screen.getByTestId("clients-reset-control") as HTMLButtonElement;
     const allRowsCount = screen.getAllByTestId("clients-status-badge").length;
 
     fireEvent.change(search, { target: { value: "flowmart" } });
     expect(screen.getByText("FlowMart")).toBeInTheDocument();
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(1);
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("1 / 4");
+    expect(reset).toBeEnabled();
 
     fireEvent.change(search, { target: { value: "no-match-keyword" } });
     expect(screen.queryAllByTestId("clients-status-badge")).toHaveLength(0);
     expect(screen.getByTestId("clients-empty-state")).toBeInTheDocument();
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("0 / 4");
 
-    fireEvent.change(search, { target: { value: "" } });
+    fireEvent.click(reset);
+    expect(search.value).toBe("");
+    expect(screen.queryByTestId("clients-empty-state")).not.toBeInTheDocument();
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(
       allRowsCount
     );
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("4 / 4");
+    expect(reset).toBeDisabled();
   });
 });
