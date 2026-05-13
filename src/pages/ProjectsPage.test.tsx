@@ -25,6 +25,7 @@ describe("ProjectsPage search and filters", () => {
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
     const filter = screen.getByRole("combobox") as HTMLSelectElement;
+    const reset = screen.getByTestId("projects-reset-control") as HTMLButtonElement;
 
     expect(search.id).toBe("projects-search-input");
     expect(filter.id).toBe("projects-status-filter");
@@ -32,6 +33,7 @@ describe("ProjectsPage search and filters", () => {
       Array.from(filter.options).some((option) => option.value === "__ALL__")
     ).toBe(true);
     expect(screen.getByTestId("projects-result-count")).toHaveTextContent("4 / 4");
+    expect(reset).toBeDisabled();
   });
 
   it("shows empty state when search and filter produce zero rows", () => {
@@ -57,11 +59,12 @@ describe("ProjectsPage search and filters", () => {
     expect(screen.getByTestId("projects-result-count")).toHaveTextContent("0 / 4");
   });
 
-  it("restores rows after resetting filter and clearing search", () => {
+  it("reset clears search/filter and removes empty state", () => {
     renderProjectsPage();
 
     const search = screen.getByRole("textbox") as HTMLInputElement;
     const filter = screen.getByRole("combobox") as HTMLSelectElement;
+    const reset = screen.getByTestId("projects-reset-control") as HTMLButtonElement;
     const allRowsCount = screen.getAllByTestId("projects-status-badge").length;
 
     fireEvent.change(search, { target: { value: "bright" } });
@@ -73,15 +76,16 @@ describe("ProjectsPage search and filters", () => {
 
     fireEvent.change(filter, { target: { value: anotherStatus } });
     expect(screen.getByTestId("projects-empty-state")).toBeInTheDocument();
+    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("0 / 4");
 
-    fireEvent.change(filter, { target: { value: "__ALL__" } });
-    expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(1);
-    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("1 / 4");
-
-    fireEvent.change(search, { target: { value: "" } });
+    fireEvent.click(reset);
+    expect(search.value).toBe("");
+    expect(filter.value).toBe("__ALL__");
+    expect(screen.queryByTestId("projects-empty-state")).not.toBeInTheDocument();
     expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(
       allRowsCount
     );
     expect(screen.getByTestId("projects-result-count")).toHaveTextContent("4 / 4");
+    expect(reset).toBeDisabled();
   });
 });

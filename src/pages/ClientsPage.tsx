@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import { PageResultCount } from "../components/page/PageResultCount";
+import { PageResetControl } from "../components/page/PageResetControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import {
   PageMetricCard,
@@ -40,6 +41,11 @@ export function ClientsPage() {
 
     return searchableText.includes(normalizedKeyword);
   });
+  const hasActiveCriteria = keyword.trim().length > 0;
+
+  function handleReset() {
+    setKeyword("");
+  }
 
   return (
     <PageMain aria-labelledby="clients-page-title">
@@ -86,12 +92,19 @@ export function ClientsPage() {
           <FilterPreview>全部狀態</FilterPreview>
           <AddButton type="button">新增客戶</AddButton>
         </ToolbarRow>
-        <PageResultCount
-          testId="clients-result-count"
-          visible={visibleRows.length}
-          total={clientRows.length}
-          noun="客戶"
-        />
+        <SummaryRow>
+          <PageResultCount
+            testId="clients-result-count"
+            visible={visibleRows.length}
+            total={clientRows.length}
+            noun="客戶"
+          />
+          <PageResetControl
+            testId="clients-reset-control"
+            disabled={!hasActiveCriteria}
+            onClick={handleReset}
+          />
+        </SummaryRow>
 
         {visibleRows.length > 0 ? (
           <Rows>
@@ -167,6 +180,14 @@ const AddButton = styled.button`
   background: rgb(98 214 199 / 0.12);
   font-size: 0.9rem;
   font-weight: 700;
+`;
+
+const SummaryRow = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const Rows = styled.div`

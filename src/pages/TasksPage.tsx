@@ -7,6 +7,7 @@ import {
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import { PageResultCount } from "../components/page/PageResultCount";
+import { PageResetControl } from "../components/page/PageResetControl";
 import {
   PageDescription,
   PageHeader,
@@ -101,6 +102,13 @@ export function TasksPage() {
 
     return searchableText.includes(normalizedKeyword);
   });
+  const hasActiveCriteria =
+    keyword.trim().length > 0 || statusFilter !== ALL_FILTER_VALUE;
+
+  function handleReset() {
+    setKeyword("");
+    setStatusFilter(ALL_FILTER_VALUE);
+  }
 
   return (
     <PageMain aria-labelledby="tasks-page-title">
@@ -151,12 +159,19 @@ export function TasksPage() {
           />
           <AddButton type="button">新增任務</AddButton>
         </ToolbarRow>
-        <PageResultCount
-          testId="tasks-result-count"
-          visible={visibleRows.length}
-          total={taskRows.length}
-          noun="任務"
-        />
+        <SummaryRow>
+          <PageResultCount
+            testId="tasks-result-count"
+            visible={visibleRows.length}
+            total={taskRows.length}
+            noun="任務"
+          />
+          <PageResetControl
+            testId="tasks-reset-control"
+            disabled={!hasActiveCriteria}
+            onClick={handleReset}
+          />
+        </SummaryRow>
 
         {visibleRows.length > 0 ? (
           <Rows>
@@ -218,6 +233,14 @@ const AddButton = styled.button`
   background: rgb(98 214 199 / 0.12);
   font-size: 0.9rem;
   font-weight: 700;
+`;
+
+const SummaryRow = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const Rows = styled.div`
