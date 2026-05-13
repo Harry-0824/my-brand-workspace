@@ -2,30 +2,30 @@ import styled from "styled-components";
 
 const overviewCards = [
   {
-    title: "進行中專案",
-    value: "6",
-    description: "目前正在處理的接案專案"
-  },
-  {
-    title: "本週待辦",
-    value: "12",
-    description: "本週需要完成的任務"
-  },
-  {
-    title: "即將到期",
+    title: "進行中專案數",
     value: "4",
-    description: "未來 7 天內到期"
+    description: "對齊專案頁靜態清單。"
   },
   {
-    title: "已完成任務",
-    value: "28",
-    description: "本月已完成的任務"
+    title: "本週截止項目",
+    value: "5",
+    description: "對齊儀表板截止清單。"
+  },
+  {
+    title: "合作中客戶數",
+    value: "4",
+    description: "對齊客戶頁靜態清單。"
+  },
+  {
+    title: "目前任務數",
+    value: "6",
+    description: "對齊任務頁靜態清單。"
   }
 ] as const;
 
 export function OverviewCards() {
   return (
-    <CardsGrid aria-label="儀表板摘要">
+    <CardsGrid aria-label="儀表板概覽卡片">
       {overviewCards.map((card) => (
         <OverviewCard key={card.title}>
           <CardTitle>{card.title}</CardTitle>
