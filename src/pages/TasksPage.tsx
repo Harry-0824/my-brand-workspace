@@ -1,4 +1,9 @@
+import { useState } from "react";
 import styled from "styled-components";
+import {
+  ALL_FILTER_VALUE,
+  PageFilterControl
+} from "../components/page/PageFilterControl";
 import {
   PageDescription,
   PageHeader,
@@ -68,6 +73,13 @@ const taskRows = [
 ] as const;
 
 export function TasksPage() {
+  const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
+  const statusOptions = Array.from(new Set(taskRows.map((item) => item.status)));
+  const visibleRows =
+    statusFilter === ALL_FILTER_VALUE
+      ? taskRows
+      : taskRows.filter((item) => item.status === statusFilter);
+
   return (
     <PageMain aria-labelledby="tasks-page-title">
       <PageHeader>
@@ -102,17 +114,24 @@ export function TasksPage() {
 
         <ToolbarRow>
           <SearchPreview>搜尋任務或專案...</SearchPreview>
-          <FilterPreview>全部狀態</FilterPreview>
-          <FilterPreview>全部優先級</FilterPreview>
+          <PageFilterControl
+            id="tasks-status-filter"
+            label="任務狀態篩選"
+            options={statusOptions}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
           <AddButton type="button">新增任務</AddButton>
         </ToolbarRow>
 
         <Rows>
-          {taskRows.map((item) => (
+          {visibleRows.map((item) => (
             <Row key={`${item.task}-${item.dueDate}`}>
               <RowTop>
                 <TaskName>{item.task}</TaskName>
-                <StatusBadge>{item.status}</StatusBadge>
+                <StatusBadge data-testid="tasks-status-badge">
+                  {item.status}
+                </StatusBadge>
               </RowTop>
               <RowMeta>
                 <MetaText>{item.project}</MetaText>
@@ -157,16 +176,6 @@ const SearchPreview = styled.div`
   color: ${({ theme }) => theme.textSecondary};
   background: rgb(255 255 255 / 0.02);
   font-size: 0.9rem;
-`;
-
-const FilterPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textPrimary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
-  text-align: center;
 `;
 
 const AddButton = styled.button`

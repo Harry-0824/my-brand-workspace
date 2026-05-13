@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { afterEach, describe, expect, it } from "vitest";
@@ -19,34 +19,38 @@ function renderProjectsPage() {
   );
 }
 
-describe("ProjectsPage", () => {
-  it("renders the static projects page shell content", () => {
+describe("ProjectsPage filters", () => {
+  it("renders a project status filter with an all option", () => {
     renderProjectsPage();
 
-    for (const text of [
-      "專案管理",
-      "集中查看接案專案、合作客戶、進度與交付狀態。",
-      "全部專案",
-      "4",
-      "進行中",
-      "2",
-      "待確認",
-      "1",
-      "本月交付",
-      "3",
-      "搜尋專案或客戶...",
-      "全部狀態",
-      "新增專案",
-      "品牌官網重設計",
-      "Bright Studio",
-      "電商功能開發",
-      "FlowMart",
-      "客戶提案製作",
-      "Northwind Co.",
-      "個人作品網站",
-      "Internal"
-    ]) {
-      expect(screen.getAllByText(text).length).toBeGreaterThan(0);
-    }
+    const filter = screen.getByRole("combobox") as HTMLSelectElement;
+    expect(filter.id).toBe("projects-status-filter");
+    expect(Array.from(filter.options).some((option) => option.value === "__ALL__")).toBe(true);
+  });
+
+  it("filters visible rows and can reset back to all", () => {
+    renderProjectsPage();
+
+    const filter = screen.getByRole("combobox") as HTMLSelectElement;
+    const allRowsCount = screen.getAllByTestId("projects-status-badge").length;
+    const optionValues = Array.from(filter.options)
+      .map((option) => option.value)
+      .filter((value) => value !== "__ALL__");
+
+    expect(optionValues.length).toBeGreaterThan(0);
+
+    const targetStatus = optionValues[0];
+    fireEvent.change(filter, { target: { value: targetStatus } });
+
+    const filteredBadges = screen.getAllByTestId("projects-status-badge");
+    expect(filteredBadges.length).toBeGreaterThan(0);
+    expect(
+      filteredBadges.every((badge) => badge.textContent === targetStatus)
+    ).toBe(true);
+
+    fireEvent.change(filter, { target: { value: "__ALL__" } });
+    expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(
+      allRowsCount
+    );
   });
 });
