@@ -1,5 +1,10 @@
 ﻿import { describe, expect, it } from "vitest";
-import { APP_ROUTES, SIDEBAR_ROUTES } from "./routes";
+import {
+  APP_ROUTES,
+  PRIMARY_SIDEBAR_ROUTES,
+  SECONDARY_SIDEBAR_ROUTES,
+  SIDEBAR_ROUTES,
+} from "./routes";
 
 describe("route metadata guards", () => {
   it("keeps the exact app route paths", () => {
@@ -14,7 +19,7 @@ describe("route metadata guards", () => {
       "/calendar",
       "/reports",
       "/settings",
-      "*"
+      "*",
     ]);
   });
 
@@ -24,12 +29,9 @@ describe("route metadata guards", () => {
       "專案",
       "任務",
       "客戶",
-      "檔案",
       "說明",
-      "收款",
-      "行事曆",
+      "收款紀錄",
       "報表",
-      "設定"
     ]);
   });
 
@@ -39,13 +41,61 @@ describe("route metadata guards", () => {
       "/projects",
       "/tasks",
       "/clients",
-      "/files",
       "/help",
       "/invoices",
-      "/calendar",
       "/reports",
-      "/settings"
     ]);
+  });
+
+  it("primary sidebar shows only the 5 core workflow entries", () => {
+    expect(PRIMARY_SIDEBAR_ROUTES.map((r) => r.label)).toEqual([
+      "儀表板",
+      "專案",
+      "任務",
+      "客戶",
+      "收款紀錄",
+    ]);
+  });
+
+  it("secondary sidebar shows only 報表 and 說明", () => {
+    expect(SECONDARY_SIDEBAR_ROUTES.map((r) => r.label)).toEqual([
+      "說明",
+      "報表",
+    ]);
+  });
+
+  it("檔案 is not in primary or secondary sidebar", () => {
+    const allSidebarLabels = [
+      ...PRIMARY_SIDEBAR_ROUTES,
+      ...SECONDARY_SIDEBAR_ROUTES,
+    ].map((r) => r.label);
+
+    expect(allSidebarLabels).not.toContain("檔案");
+  });
+
+  it("行事曆 is not in primary or secondary sidebar", () => {
+    const allSidebarLabels = [
+      ...PRIMARY_SIDEBAR_ROUTES,
+      ...SECONDARY_SIDEBAR_ROUTES,
+    ].map((r) => r.label);
+
+    expect(allSidebarLabels).not.toContain("行事曆");
+  });
+
+  it("設定 is not in primary or secondary sidebar", () => {
+    const allSidebarLabels = [
+      ...PRIMARY_SIDEBAR_ROUTES,
+      ...SECONDARY_SIDEBAR_ROUTES,
+    ].map((r) => r.label);
+
+    expect(allSidebarLabels).not.toContain("設定");
+  });
+
+  it("收款紀錄 uses /invoices route", () => {
+    const invoiceRoute = APP_ROUTES.find((r) => r.key === "invoices");
+
+    expect(invoiceRoute?.label).toBe("收款紀錄");
+    expect(invoiceRoute?.path).toBe("/invoices");
   });
 
   it("keeps not-found metadata unchanged", () => {
@@ -57,7 +107,7 @@ describe("route metadata guards", () => {
       path: "*",
       label: null,
       showInSidebar: false,
-      heading: "找不到頁面"
+      heading: "找不到頁面",
     });
   });
 });

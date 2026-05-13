@@ -1,6 +1,9 @@
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
-import { SIDEBAR_ROUTES } from "../../app/routes";
+import {
+  PRIMARY_SIDEBAR_ROUTES,
+  SECONDARY_SIDEBAR_ROUTES,
+} from "../../app/routes";
 
 export function Sidebar() {
   return (
@@ -14,21 +17,31 @@ export function Sidebar() {
       </BrandBlock>
 
       <NavList>
-        {SIDEBAR_ROUTES.map((item) => {
+        {PRIMARY_SIDEBAR_ROUTES.map((item) => {
           const isRoot = item.path === "/";
 
           return (
             <NavListItem key={item.key}>
-              <NavItem
-                to={item.path}
-                end={isRoot}
-              >
+              <NavItem to={item.path} end={isRoot}>
                 <NavIcon aria-hidden="true" />
                 <span>{item.label}</span>
               </NavItem>
             </NavListItem>
           );
         })}
+      </NavList>
+
+      <NavDivider />
+
+      <NavList>
+        {SECONDARY_SIDEBAR_ROUTES.map((item) => (
+          <NavListItem key={item.key}>
+            <NavItem to={item.path}>
+              <NavIcon aria-hidden="true" />
+              <span>{item.label}</span>
+            </NavItem>
+          </NavListItem>
+        ))}
       </NavList>
     </SidebarShell>
   );
@@ -46,7 +59,8 @@ const BrandBlock = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.md};
-  padding: 0 ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.xl};
+  padding: 0 ${({ theme }) => theme.spacing.sm}
+    ${({ theme }) => theme.spacing.xl};
 `;
 
 const BrandMark = styled.div`
@@ -117,4 +131,10 @@ const NavIcon = styled.span`
   border-radius: 999px;
   background: currentColor;
   opacity: 0.72;
+`;
+
+const NavDivider = styled.hr`
+  margin: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.sm};
+  border: none;
+  border-top: 1px solid ${({ theme }) => theme.border};
 `;

@@ -1,3 +1,4 @@
+import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 
 export function AppHeader() {
@@ -14,6 +15,9 @@ export function AppHeader() {
         </SearchLabel>
         <CreateButton type="button">新增</CreateButton>
         <NotificationIcon aria-label="通知" role="img" />
+        <SettingsLink to="/settings" aria-label="設定">
+          <GearIcon aria-hidden="true" />
+        </SettingsLink>
         <UserBadge aria-label="目前使用者 Harry">Harry</UserBadge>
       </HeaderActions>
     </HeaderShell>
@@ -26,7 +30,8 @@ const HeaderShell = styled.header`
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing.xl};
-  padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.xxl};
+  padding: ${({ theme }) => theme.spacing.lg}
+    ${({ theme }) => theme.spacing.xxl};
   border-bottom: 1px solid ${({ theme }) => theme.border};
   background: rgb(16 23 33 / 0.86);
   backdrop-filter: blur(18px);
@@ -137,4 +142,47 @@ const UserBadge = styled.span`
   color: ${({ theme }) => theme.textPrimary};
   font-size: 0.92rem;
   font-weight: 800;
+`;
+
+const SettingsLink = styled(NavLink)`
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.surfaceElevated};
+  color: ${({ theme }) => theme.textSecondary};
+  text-decoration: none;
+
+  &:hover {
+    color: ${({ theme }) => theme.textPrimary};
+  }
+
+  &.active {
+    border-color: rgb(98 214 199 / 0.36);
+    background: rgb(98 214 199 / 0.12);
+    color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const GearIcon = styled.span`
+  width: 1rem;
+  height: 1rem;
+  display: block;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 50%;
+    transform: translate(-50%, -50%);
+    width: 0.36rem;
+    height: 0.36rem;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    background: transparent;
+  }
 `;

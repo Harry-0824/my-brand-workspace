@@ -4,7 +4,11 @@ import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "./App";
-import { ROUTE_HEADING_CASES, SIDEBAR_NAVIGATION_CASES } from "./routes";
+import {
+  PRIMARY_SIDEBAR_ROUTES,
+  ROUTE_HEADING_CASES,
+  SIDEBAR_NAVIGATION_CASES,
+} from "./routes";
 import { theme } from "../styles/theme";
 
 afterEach(() => {
@@ -17,13 +21,16 @@ function renderApp(initialEntries: string[] = ["/"]) {
       <ThemeProvider theme={theme}>
         <App />
       </ThemeProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
-function assertSingleActiveLink(navigation: HTMLElement, expectedLabel: string) {
+function assertSingleActiveLink(
+  navigation: HTMLElement,
+  expectedLabel: string,
+) {
   const currentPageLinks = within(navigation).getAllByRole("link", {
-    current: "page"
+    current: "page",
   });
 
   expect(currentPageLinks).toHaveLength(1);
@@ -33,13 +40,21 @@ function assertSingleActiveLink(navigation: HTMLElement, expectedLabel: string) 
 describe("App static routing", () => {
   it("renders next-step CTA sections on core pages", () => {
     renderApp(["/projects"]);
-    expect(screen.getByRole("heading", { name: "下一步建議" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "下一步建議" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" }),
+    ).toBeInTheDocument();
 
     cleanup();
     renderApp(["/clients"]);
-    expect(screen.getByRole("heading", { name: "下一步建議" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "前往收款頁面，檢查待收款與發票" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "下一步建議" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "前往收款頁面，檢查待收款與發票" }),
+    ).toBeInTheDocument();
   });
 
   it("navigates from projects CTA link to /tasks", async () => {
@@ -47,15 +62,23 @@ describe("App static routing", () => {
 
     renderApp(["/projects"]);
 
-    await user.click(screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" }));
-    expect(screen.getByRole("heading", { name: "任務管理" })).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "任務管理" }),
+    ).toBeInTheDocument();
   });
 
   it("renders dashboard MVP overview and quick action links on /", () => {
     renderApp(["/"]);
 
-    expect(screen.getByRole("heading", { name: "工作區快照" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "快速捷徑" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "工作區快照" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "快速捷徑" }),
+    ).toBeInTheDocument();
 
     const quickActionPaths = [
       "/projects",
@@ -63,11 +86,13 @@ describe("App static routing", () => {
       "/clients",
       "/invoices",
       "/calendar",
-      "/files"
+      "/files",
     ];
 
     for (const path of quickActionPaths) {
-      expect(screen.getByRole("link", { name: `quick-action-${path}` })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: `quick-action-${path}` }),
+      ).toBeInTheDocument();
     }
   });
 
@@ -76,19 +101,27 @@ describe("App static routing", () => {
 
     renderApp(["/"]);
 
-    await user.click(screen.getByRole("link", { name: "quick-action-/projects" }));
-    expect(screen.getByRole("heading", { name: "專案管理" })).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("link", { name: "quick-action-/projects" }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "專案管理" }),
+    ).toBeInTheDocument();
   });
 
   it("keeps key dashboard/page CTA links on expected routes", async () => {
     const user = userEvent.setup();
 
     renderApp(["/"]);
-    await user.click(screen.getByRole("link", { name: "quick-action-/invoices" }));
-    expect(screen.getByRole("heading", { name: "收款管理" })).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("link", { name: "quick-action-/invoices" }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "收款管理" }),
+    ).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole("link", { name: "前往報表頁面，快速檢查收款快照" })
+      screen.getByRole("link", { name: "前往報表頁面，快速檢查收款快照" }),
     );
     expect(screen.getByRole("heading", { name: "報表" })).toBeInTheDocument();
   });
@@ -96,8 +129,8 @@ describe("App static routing", () => {
   it.each(
     ROUTE_HEADING_CASES.map(({ path, heading }) => [
       path,
-      `${heading} | My Brand Workspace`
-    ])
+      `${heading} | My Brand Workspace`,
+    ]),
   )("sets document.title for %s", (path, expectedTitle) => {
     renderApp([path]);
 
@@ -119,7 +152,9 @@ describe("App static routing", () => {
   it("renders NotFoundPage on unknown route", () => {
     renderApp(["/unknown-route"]);
 
-    expect(screen.getByRole("heading", { name: "找不到頁面" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "找不到頁面" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("回到儀表板")).toBeInTheDocument();
   });
 
@@ -134,9 +169,69 @@ describe("App static routing", () => {
       const targetLink = within(navigation).getByRole("link", { name: label });
 
       await user.click(targetLink);
-      expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: heading }),
+      ).toBeInTheDocument();
       expect(targetLink).toHaveAttribute("aria-current", "page");
       assertSingleActiveLink(navigation, label);
     }
+  });
+});
+
+describe("Simplified navigation structure", () => {
+  it("sidebar primary navigation shows exactly 5 core workflow entries", () => {
+    renderApp(["/"]);
+
+    const navigation = screen.getByRole("navigation", { name: "主要導航" });
+
+    for (const route of PRIMARY_SIDEBAR_ROUTES) {
+      expect(
+        within(navigation).getByRole("link", { name: route.label as string }),
+      ).toBeInTheDocument();
+    }
+
+    expect(within(navigation).queryByRole("link", { name: "檔案" })).toBeNull();
+    expect(
+      within(navigation).queryByRole("link", { name: "行事曆" }),
+    ).toBeNull();
+    expect(within(navigation).queryByRole("link", { name: "設定" })).toBeNull();
+  });
+
+  it("sidebar shows 報表 and 說明 as secondary entries", () => {
+    renderApp(["/"]);
+
+    const navigation = screen.getByRole("navigation", { name: "主要導航" });
+
+    expect(
+      within(navigation).getByRole("link", { name: "報表" }),
+    ).toBeInTheDocument();
+    expect(
+      within(navigation).getByRole("link", { name: "說明" }),
+    ).toBeInTheDocument();
+  });
+
+  it("settings gear icon is in the navbar and navigates to /settings", async () => {
+    const user = userEvent.setup();
+
+    renderApp(["/"]);
+
+    const settingsLink = screen.getByRole("link", { name: "設定" });
+
+    expect(settingsLink).toBeInTheDocument();
+
+    await user.click(settingsLink);
+    expect(screen.getByRole("heading", { name: "設定" })).toBeInTheDocument();
+  });
+
+  it.each([
+    ["/files", "檔案"],
+    ["/calendar", "行事曆"],
+    ["/reports", "報表"],
+    ["/settings", "設定"],
+    ["/help", "說明"],
+  ])("direct route %s is still accessible", (path, heading) => {
+    renderApp([path]);
+
+    expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
   });
 });

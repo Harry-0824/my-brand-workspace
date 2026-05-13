@@ -24,11 +24,14 @@ type AppRoutePath =
   | "/settings"
   | "*";
 
+export type SidebarSection = "primary" | "secondary";
+
 export type AppRouteMeta = {
   heading: string;
   label: string | null;
   path: AppRoutePath;
   showInSidebar: boolean;
+  sidebarSection?: SidebarSection;
   key: string;
   element: ReactElement;
 };
@@ -40,7 +43,8 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: "儀表板",
     heading: "儀表板",
     showInSidebar: true,
-    element: <DashboardContent />
+    sidebarSection: "primary",
+    element: <DashboardContent />,
   },
   {
     key: "projects",
@@ -48,7 +52,8 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: "專案",
     heading: "專案管理",
     showInSidebar: true,
-    element: <ProjectsPage />
+    sidebarSection: "primary",
+    element: <ProjectsPage />,
   },
   {
     key: "tasks",
@@ -56,7 +61,8 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: "任務",
     heading: "任務管理",
     showInSidebar: true,
-    element: <TasksPage />
+    sidebarSection: "primary",
+    element: <TasksPage />,
   },
   {
     key: "clients",
@@ -64,15 +70,16 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: "客戶",
     heading: "客戶管理",
     showInSidebar: true,
-    element: <ClientsPage />
+    sidebarSection: "primary",
+    element: <ClientsPage />,
   },
   {
     key: "files",
     path: "/files",
     label: "檔案",
     heading: "檔案",
-    showInSidebar: true,
-    element: <FilesPage />
+    showInSidebar: false,
+    element: <FilesPage />,
   },
   {
     key: "help",
@@ -80,23 +87,25 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: "說明",
     heading: "說明",
     showInSidebar: true,
-    element: <HelpPage />
+    sidebarSection: "secondary",
+    element: <HelpPage />,
   },
   {
     key: "invoices",
     path: "/invoices",
-    label: "收款",
+    label: "收款紀錄",
     heading: "收款管理",
     showInSidebar: true,
-    element: <InvoicesPage />
+    sidebarSection: "primary",
+    element: <InvoicesPage />,
   },
   {
     key: "calendar",
     path: "/calendar",
     label: "行事曆",
     heading: "行事曆",
-    showInSidebar: true,
-    element: <CalendarPage />
+    showInSidebar: false,
+    element: <CalendarPage />,
   },
   {
     key: "reports",
@@ -104,15 +113,16 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: "報表",
     heading: "報表",
     showInSidebar: true,
-    element: <ReportsPage />
+    sidebarSection: "secondary",
+    element: <ReportsPage />,
   },
   {
     key: "settings",
     path: "/settings",
     label: "設定",
     heading: "設定",
-    showInSidebar: true,
-    element: <SettingsPage />
+    showInSidebar: false,
+    element: <SettingsPage />,
   },
   {
     key: "not-found",
@@ -120,16 +130,24 @@ export const APP_ROUTES: AppRouteMeta[] = [
     label: null,
     heading: "找不到頁面",
     showInSidebar: false,
-    element: <NotFoundPage />
-  }
+    element: <NotFoundPage />,
+  },
 ];
 
 export const SIDEBAR_ROUTES = APP_ROUTES.filter((route) => route.showInSidebar);
-export const ROUTE_HEADING_CASES = APP_ROUTES.filter((route) => route.path !== "*").map((route) => ({
+export const PRIMARY_SIDEBAR_ROUTES = APP_ROUTES.filter(
+  (r) => r.sidebarSection === "primary",
+);
+export const SECONDARY_SIDEBAR_ROUTES = APP_ROUTES.filter(
+  (r) => r.sidebarSection === "secondary",
+);
+export const ROUTE_HEADING_CASES = APP_ROUTES.filter(
+  (route) => route.path !== "*",
+).map((route) => ({
   path: route.path,
-  heading: route.heading
+  heading: route.heading,
 }));
 export const SIDEBAR_NAVIGATION_CASES = SIDEBAR_ROUTES.map((route) => ({
   label: route.label as string,
-  heading: route.heading
+  heading: route.heading,
 }));
