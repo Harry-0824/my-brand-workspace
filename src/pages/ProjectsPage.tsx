@@ -149,7 +149,7 @@ export function ProjectsPage() {
             value={statusFilter}
             onChange={setStatusFilter}
           />
-          <AddButton type="button">新增專案</AddButton>
+          <AddButton type="button">新增專案（示意）</AddButton>
         </ToolbarRow>
         <PageListSummaryRow>
           <PageResultCount

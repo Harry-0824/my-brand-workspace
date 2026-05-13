@@ -91,7 +91,7 @@ export function ClientsPage() {
             onChange={setKeyword}
           />
           <FilterPreview>全部狀態</FilterPreview>
-          <AddButton type="button">新增客戶</AddButton>
+          <AddButton type="button">新增客戶（示意）</AddButton>
         </ToolbarRow>
         <PageListSummaryRow>
           <PageResultCount
