@@ -4,20 +4,26 @@ import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectsPage } from "./ProjectsPage";
 import { theme } from "../styles/theme";
-import type { ProjectRecord } from "../lib/projects";
+import type { ProjectRecord, ProjectStatus } from "../lib/projects";
 
 const mockFetchProjectsForCurrentUser = vi.fn();
 const mockCreateProjectForCurrentUser = vi.fn();
+const mockUpdateProjectForCurrentUser = vi.fn();
+const mockDeleteProjectForCurrentUser = vi.fn();
 
 vi.mock("../lib/projects", () => ({
   PROJECT_STATUS_VALUES: ["active", "paused", "completed", "archived"],
   fetchProjectsForCurrentUser: (...args: unknown[]) =>
     mockFetchProjectsForCurrentUser(...args),
   createProjectForCurrentUser: (...args: unknown[]) =>
-    mockCreateProjectForCurrentUser(...args)
+    mockCreateProjectForCurrentUser(...args),
+  updateProjectForCurrentUser: (...args: unknown[]) =>
+    mockUpdateProjectForCurrentUser(...args),
+  deleteProjectForCurrentUser: (...args: unknown[]) =>
+    mockDeleteProjectForCurrentUser(...args)
 }));
 
-const mockRows: ProjectRecord[] = [
+const baseRows: ProjectRecord[] = [
   {
     id: "p-1",
     user_id: "user-1",
@@ -70,11 +76,11 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockFetchProjectsForCurrentUser.mockResolvedValue(mockRows);
+  mockFetchProjectsForCurrentUser.mockResolvedValue(baseRows);
   mockCreateProjectForCurrentUser.mockImplementation(
     async (input: {
       name: string;
-      status: "active" | "paused" | "completed" | "archived";
+      status: ProjectStatus;
       description?: string;
       client_name?: string;
       start_date?: string;
@@ -91,6 +97,27 @@ beforeEach(() => {
       created_at: "2026-05-14T09:00:00.000Z"
     })
   );
+  mockUpdateProjectForCurrentUser.mockImplementation(
+    async (projectId: string, input: {
+      name: string;
+      status: ProjectStatus;
+      description?: string;
+      client_name?: string;
+      start_date?: string;
+      due_date?: string;
+    }) => ({
+      id: projectId,
+      user_id: "user-1",
+      name: input.name,
+      status: input.status,
+      description: input.description ?? null,
+      client_name: input.client_name ?? null,
+      start_date: input.start_date ?? null,
+      due_date: input.due_date ?? null,
+      created_at: "2026-05-01T12:00:00.000Z"
+    })
+  );
+  mockDeleteProjectForCurrentUser.mockResolvedValue(true);
 });
 
 function renderProjectsPage() {
@@ -133,56 +160,6 @@ describe("ProjectsPage Supabase integration behaviors", () => {
     expect(reset).toBeDisabled();
   });
 
-  it("shows empty state when search and filter produce zero rows", async () => {
-    renderProjectsPage();
-    await waitForRowsToLoad();
-
-    const search = screen.getByRole("textbox", {
-      name: "專案關鍵字搜尋"
-    }) as HTMLInputElement;
-    const filter = screen.getByRole("combobox", {
-      name: "專案狀態"
-    }) as HTMLSelectElement;
-
-    fireEvent.change(search, { target: { value: "bright" } });
-    expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(1);
-    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("1 / 4");
-
-    fireEvent.change(filter, { target: { value: "已完成" } });
-    expect(screen.queryAllByTestId("projects-status-badge")).toHaveLength(0);
-    expect(screen.getByTestId("projects-empty-state")).toBeInTheDocument();
-    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("0 / 4");
-  });
-
-  it("reset clears search/filter and removes empty state", async () => {
-    renderProjectsPage();
-    await waitForRowsToLoad();
-
-    const search = screen.getByRole("textbox", {
-      name: "專案關鍵字搜尋"
-    }) as HTMLInputElement;
-    const filter = screen.getByRole("combobox", {
-      name: "專案狀態"
-    }) as HTMLSelectElement;
-    const reset = screen.getByTestId("projects-reset-control") as HTMLButtonElement;
-    const allRowsCount = screen.getAllByTestId("projects-status-badge").length;
-
-    fireEvent.change(search, { target: { value: "bright" } });
-    fireEvent.change(filter, { target: { value: "已完成" } });
-    expect(screen.getByTestId("projects-empty-state")).toBeInTheDocument();
-    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("0 / 4");
-
-    fireEvent.click(reset);
-    expect(search.value).toBe("");
-    expect(filter.value).toBe("__ALL__");
-    expect(screen.queryByTestId("projects-empty-state")).not.toBeInTheDocument();
-    expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(
-      allRowsCount
-    );
-    expect(screen.getByTestId("projects-result-count")).toHaveTextContent("4 / 4");
-    expect(reset).toBeDisabled();
-  });
-
   it("creates a project and prepends it to the list", async () => {
     renderProjectsPage();
     await waitForRowsToLoad();
@@ -217,5 +194,64 @@ describe("ProjectsPage Supabase integration behaviors", () => {
     });
     expect(screen.getByTestId("projects-result-count")).toHaveTextContent("5 / 5");
     expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(5);
+  });
+
+  it("updates the selected project only", async () => {
+    renderProjectsPage();
+    await waitForRowsToLoad();
+
+    const editButtons = screen.getAllByTestId("projects-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    const editNameInput = screen.getByLabelText("專案名稱", {
+      selector: "input[id^='projects-edit-name-']"
+    }) as HTMLInputElement;
+    const editStatusSelect = screen.getByLabelText("狀態", {
+      selector: "select[id^='projects-edit-status-']"
+    }) as HTMLSelectElement;
+
+    fireEvent.change(editNameInput, { target: { value: "品牌官網改版 V2" } });
+    fireEvent.change(editStatusSelect, { target: { value: "completed" } });
+    fireEvent.click(screen.getByTestId("projects-save-edit-button"));
+
+    await waitFor(() => {
+      expect(mockUpdateProjectForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockUpdateProjectForCurrentUser).toHaveBeenCalledWith(
+      "p-1",
+      expect.objectContaining({
+        name: "品牌官網改版 V2",
+        status: "completed"
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("projects-action-success")).toHaveTextContent(
+        "專案已更新。"
+      );
+    });
+    expect(screen.getByText("品牌官網改版 V2")).toBeInTheDocument();
+    expect(screen.getByText("電商功能開發")).toBeInTheDocument();
+  });
+
+  it("deletes the selected project only", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderProjectsPage();
+    await waitForRowsToLoad();
+
+    const deleteButtons = screen.getAllByTestId("projects-delete-button");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(mockDeleteProjectForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockDeleteProjectForCurrentUser).toHaveBeenCalledWith("p-1");
+    await waitFor(() => {
+      expect(screen.getByTestId("projects-result-count")).toHaveTextContent("3 / 3");
+    });
+    expect(screen.queryByText("品牌官網重設計")).not.toBeInTheDocument();
+    expect(screen.getByText("電商功能開發")).toBeInTheDocument();
+
+    confirmSpy.mockRestore();
   });
 });

@@ -28,6 +28,15 @@ export type CreateProjectInput = {
   due_date?: string;
 };
 
+export type UpdateProjectInput = {
+  name: string;
+  status: ProjectStatus;
+  description?: string;
+  client_name?: string;
+  start_date?: string;
+  due_date?: string;
+};
+
 function normalizeOptionalText(value?: string) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
@@ -107,4 +116,69 @@ export async function createProjectForCurrentUser(input: CreateProjectInput) {
   }
 
   return data as ProjectRecord;
+}
+
+export async function updateProjectForCurrentUser(
+  projectId: string,
+  input: UpdateProjectInput
+) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot update projects.");
+  }
+
+  const payload = {
+    name: input.name.trim(),
+    status: input.status,
+    description: normalizeOptionalText(input.description),
+    client_name: normalizeOptionalText(input.client_name),
+    start_date: normalizeOptionalDate(input.start_date),
+    due_date: normalizeOptionalDate(input.due_date)
+  };
+
+  const { data, error } = await supabase
+    .from("projects")
+    .update(payload)
+    .eq("id", projectId)
+    .eq("user_id", userId)
+    .select(
+      "id, user_id, name, status, description, client_name, start_date, due_date, created_at"
+    )
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update project: ${error.message}`);
+  }
+
+  return data as ProjectRecord;
+}
+
+export async function deleteProjectForCurrentUser(projectId: string) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot delete projects.");
+  }
+
+  const { data, error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("id", projectId)
+    .eq("user_id", userId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete project: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Project was not deleted. It may not exist or may not belong to the current user."
+    );
+  }
+
+  return true;
 }

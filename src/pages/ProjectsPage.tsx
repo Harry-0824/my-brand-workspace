@@ -27,9 +27,12 @@ import { DashboardSectionHeader } from "../components/dashboard/shared/Dashboard
 import {
   PROJECT_STATUS_VALUES,
   type CreateProjectInput,
+  type ProjectRecord,
   type ProjectStatus,
   createProjectForCurrentUser,
-  fetchProjectsForCurrentUser
+  deleteProjectForCurrentUser,
+  fetchProjectsForCurrentUser,
+  updateProjectForCurrentUser
 } from "../lib/projects";
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -50,6 +53,17 @@ const initialFormState: ProjectFormState = {
   due_date: ""
 };
 
+function toFormState(project: ProjectRecord): ProjectFormState {
+  return {
+    name: project.name,
+    status: project.status,
+    description: project.description ?? "",
+    client_name: project.client_name ?? "",
+    start_date: project.start_date ?? "",
+    due_date: project.due_date ?? ""
+  };
+}
+
 export function ProjectsPage() {
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
@@ -58,10 +72,22 @@ export function ProjectsPage() {
   >>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [formState, setFormState] = useState<ProjectFormState>(initialFormState);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editFormState, setEditFormState] = useState<ProjectFormState>(
+    initialFormState
+  );
+  const [isUpdatingProjectId, setIsUpdatingProjectId] = useState<string | null>(
+    null
+  );
+  const [isDeletingProjectId, setIsDeletingProjectId] = useState<string | null>(
+    null
+  );
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -159,7 +185,7 @@ export function ProjectsPage() {
         .length.toString()
     },
     {
-      label: "封存中",
+      label: "已封存",
       value: projects.filter((item) => item.status === "archived").length.toString()
     }
   ] as const;
@@ -169,17 +195,38 @@ export function ProjectsPage() {
     setStatusFilter(ALL_FILTER_VALUE);
   }
 
-  function updateFormField<K extends keyof ProjectFormState>(
+  function updateCreateFormField<K extends keyof ProjectFormState>(
     key: K,
     value: ProjectFormState[K]
   ) {
     setFormState((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateEditFormField<K extends keyof ProjectFormState>(
+    key: K,
+    value: ProjectFormState[K]
+  ) {
+    setEditFormState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function startEdit(project: ProjectRecord) {
+    setActionError(null);
+    setActionSuccess(null);
+    setEditingProjectId(project.id);
+    setEditFormState(toFormState(project));
+  }
+
+  function cancelEdit() {
+    setEditingProjectId(null);
+    setEditFormState(initialFormState);
+  }
+
   async function handleCreateProject(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreateError(null);
     setCreateSuccess(null);
+    setActionError(null);
+    setActionSuccess(null);
 
     if (!formState.name.trim()) {
       setCreateError("請輸入專案名稱。");
@@ -204,12 +251,71 @@ export function ProjectsPage() {
     }
   }
 
+  async function handleUpdateProject(projectId: string) {
+    setActionError(null);
+    setActionSuccess(null);
+
+    if (!editFormState.name.trim()) {
+      setActionError("請輸入專案名稱後再儲存。");
+      return;
+    }
+
+    setIsUpdatingProjectId(projectId);
+
+    try {
+      const updated = await updateProjectForCurrentUser(projectId, editFormState);
+      setProjects((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+      setEditingProjectId(null);
+      setEditFormState(initialFormState);
+      setActionSuccess("專案已更新。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法更新專案，請稍後再試。";
+      setActionError(message);
+    } finally {
+      setIsUpdatingProjectId(null);
+    }
+  }
+
+  async function handleDeleteProject(projectId: string) {
+    setActionError(null);
+    setActionSuccess(null);
+
+    const shouldDelete = window.confirm("確定要刪除此專案嗎？");
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeletingProjectId(projectId);
+
+    try {
+      await deleteProjectForCurrentUser(projectId);
+      setProjects((prev) => prev.filter((item) => item.id !== projectId));
+      if (editingProjectId === projectId) {
+        cancelEdit();
+      }
+      setActionSuccess("專案已刪除。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法刪除專案，請稍後再試。";
+      setActionError(message);
+    } finally {
+      setIsDeletingProjectId(null);
+    }
+  }
+
   return (
     <PageMain aria-labelledby="projects-page-title">
       <PageHeader>
         <PageTitle id="projects-page-title">專案管理</PageTitle>
         <PageDescription>
-          在此檢視與建立你的專案資料，並保留既有頁面排版流程。
+          在此檢視、建立、更新與刪除你的專案資料，並維持既有頁面結構。
         </PageDescription>
       </PageHeader>
 
@@ -234,7 +340,7 @@ export function ProjectsPage() {
         <DashboardSectionHeader
           titleId="projects-list-title"
           title="專案列表"
-          description="可依關鍵字與狀態篩選，並使用最小流程建立新專案。"
+          description="可依關鍵字與狀態篩選，並在列表中進行最小更新與刪除操作。"
           withDivider
         />
 
@@ -244,7 +350,9 @@ export function ProjectsPage() {
             <FieldInput
               id="projects-create-name"
               value={formState.name}
-              onChange={(event) => updateFormField("name", event.target.value)}
+              onChange={(event) =>
+                updateCreateFormField("name", event.target.value)
+              }
               placeholder="例如：品牌官網重設計"
               required
             />
@@ -255,7 +363,7 @@ export function ProjectsPage() {
               id="projects-create-status"
               value={formState.status}
               onChange={(event) =>
-                updateFormField("status", event.target.value as ProjectStatus)
+                updateCreateFormField("status", event.target.value as ProjectStatus)
               }
             >
               {PROJECT_STATUS_VALUES.map((status) => (
@@ -271,7 +379,7 @@ export function ProjectsPage() {
               id="projects-create-client"
               value={formState.client_name}
               onChange={(event) =>
-                updateFormField("client_name", event.target.value)
+                updateCreateFormField("client_name", event.target.value)
               }
               placeholder="例如：Bright Studio"
             />
@@ -283,7 +391,7 @@ export function ProjectsPage() {
               type="date"
               value={formState.start_date}
               onChange={(event) =>
-                updateFormField("start_date", event.target.value)
+                updateCreateFormField("start_date", event.target.value)
               }
             />
           </Field>
@@ -293,7 +401,9 @@ export function ProjectsPage() {
               id="projects-create-due-date"
               type="date"
               value={formState.due_date}
-              onChange={(event) => updateFormField("due_date", event.target.value)}
+              onChange={(event) =>
+                updateCreateFormField("due_date", event.target.value)
+              }
             />
           </Field>
           <Field className="full-width">
@@ -302,7 +412,7 @@ export function ProjectsPage() {
               id="projects-create-description"
               value={formState.description}
               onChange={(event) =>
-                updateFormField("description", event.target.value)
+                updateCreateFormField("description", event.target.value)
               }
               placeholder="描述本專案主要目標或交付重點。"
             />
@@ -318,6 +428,14 @@ export function ProjectsPage() {
         {createSuccess ? (
           <InlineSuccess data-testid="projects-create-success">
             {createSuccess}
+          </InlineSuccess>
+        ) : null}
+        {actionError ? (
+          <InlineError data-testid="projects-action-error">{actionError}</InlineError>
+        ) : null}
+        {actionSuccess ? (
+          <InlineSuccess data-testid="projects-action-success">
+            {actionSuccess}
           </InlineSuccess>
         ) : null}
 
@@ -360,25 +478,159 @@ export function ProjectsPage() {
 
         {!isLoading && !fetchError && visibleRows.length > 0 ? (
           <Rows>
-            {visibleRows.map((item) => (
-              <Row key={item.id}>
-                <RowTop>
-                  <ProjectName>{item.name}</ProjectName>
-                  <StatusBadge data-testid="projects-status-badge">
-                    {STATUS_LABELS[item.status]}
-                  </StatusBadge>
-                </RowTop>
-                <RowMeta>
-                  <MetaText>{item.client_name || "未填寫客戶"}</MetaText>
-                  <MetaText>{item.status}</MetaText>
-                </RowMeta>
-                <RowBody>{item.description || "尚未填寫專案描述。"}</RowBody>
-                <NextStep>
-                  開始：{item.start_date || "未設定"} ｜ 截止：
-                  {item.due_date || "未設定"}
-                </NextStep>
-              </Row>
-            ))}
+            {visibleRows.map((item) => {
+              const isEditing = editingProjectId === item.id;
+              const isUpdating = isUpdatingProjectId === item.id;
+              const isDeleting = isDeletingProjectId === item.id;
+
+              return (
+                <Row key={item.id}>
+                  <RowTop>
+                    <ProjectName>{item.name}</ProjectName>
+                    <StatusBadge data-testid="projects-status-badge">
+                      {STATUS_LABELS[item.status]}
+                    </StatusBadge>
+                  </RowTop>
+                  <RowMeta>
+                    <MetaText>{item.client_name || "未填寫客戶"}</MetaText>
+                    <MetaText>{item.status}</MetaText>
+                  </RowMeta>
+                  <RowBody>{item.description || "尚未填寫專案描述。"}</RowBody>
+                  <NextStep>
+                    開始：{item.start_date || "未設定"} ｜ 截止：
+                    {item.due_date || "未設定"}
+                  </NextStep>
+                  <RowActions>
+                    {!isEditing ? (
+                      <>
+                        <GhostButton
+                          type="button"
+                          data-testid="projects-edit-button"
+                          onClick={() => startEdit(item)}
+                          disabled={Boolean(isUpdatingProjectId || isDeletingProjectId)}
+                        >
+                          編輯
+                        </GhostButton>
+                        <DangerButton
+                          type="button"
+                          data-testid="projects-delete-button"
+                          onClick={() => void handleDeleteProject(item.id)}
+                          disabled={Boolean(isUpdatingProjectId || isDeletingProjectId)}
+                        >
+                          {isDeleting ? "刪除中..." : "刪除"}
+                        </DangerButton>
+                      </>
+                    ) : null}
+                  </RowActions>
+
+                  {isEditing ? (
+                    <EditFormGrid data-testid="projects-edit-form">
+                      <Field>
+                        <FieldLabel htmlFor={`projects-edit-name-${item.id}`}>
+                          專案名稱
+                        </FieldLabel>
+                        <FieldInput
+                          id={`projects-edit-name-${item.id}`}
+                          value={editFormState.name}
+                          onChange={(event) =>
+                            updateEditFormField("name", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`projects-edit-status-${item.id}`}>
+                          狀態
+                        </FieldLabel>
+                        <FieldSelect
+                          id={`projects-edit-status-${item.id}`}
+                          value={editFormState.status}
+                          onChange={(event) =>
+                            updateEditFormField(
+                              "status",
+                              event.target.value as ProjectStatus
+                            )
+                          }
+                        >
+                          {PROJECT_STATUS_VALUES.map((status) => (
+                            <option key={status} value={status}>
+                              {STATUS_LABELS[status]}
+                            </option>
+                          ))}
+                        </FieldSelect>
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`projects-edit-client-${item.id}`}>
+                          客戶名稱
+                        </FieldLabel>
+                        <FieldInput
+                          id={`projects-edit-client-${item.id}`}
+                          value={editFormState.client_name}
+                          onChange={(event) =>
+                            updateEditFormField("client_name", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`projects-edit-start-date-${item.id}`}>
+                          開始日期
+                        </FieldLabel>
+                        <FieldInput
+                          id={`projects-edit-start-date-${item.id}`}
+                          type="date"
+                          value={editFormState.start_date}
+                          onChange={(event) =>
+                            updateEditFormField("start_date", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`projects-edit-due-date-${item.id}`}>
+                          截止日期
+                        </FieldLabel>
+                        <FieldInput
+                          id={`projects-edit-due-date-${item.id}`}
+                          type="date"
+                          value={editFormState.due_date}
+                          onChange={(event) =>
+                            updateEditFormField("due_date", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field className="full-width">
+                        <FieldLabel htmlFor={`projects-edit-description-${item.id}`}>
+                          專案描述
+                        </FieldLabel>
+                        <FieldTextarea
+                          id={`projects-edit-description-${item.id}`}
+                          value={editFormState.description}
+                          onChange={(event) =>
+                            updateEditFormField("description", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <EditActions>
+                        <GhostButton
+                          type="button"
+                          data-testid="projects-cancel-edit-button"
+                          onClick={cancelEdit}
+                          disabled={isUpdating}
+                        >
+                          取消
+                        </GhostButton>
+                        <AddButton
+                          type="button"
+                          data-testid="projects-save-edit-button"
+                          onClick={() => void handleUpdateProject(item.id)}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "儲存中..." : "儲存更新"}
+                        </AddButton>
+                      </EditActions>
+                    </EditFormGrid>
+                  ) : null}
+                </Row>
+              );
+            })}
           </Rows>
         ) : null}
 
@@ -394,7 +646,7 @@ export function ProjectsPage() {
       <PageNextStep
         titleId="projects-next-step-title"
         title="下一步建議"
-        description="建立專案後，可前往任務或行事曆安排後續執行節點。"
+        description="完成專案調整後，可前往任務或行事曆安排後續執行節點。"
         links={[
           { label: "前往任務頁面，安排下一步執行項目", to: "/tasks" },
           { label: "前往行事曆頁面，確認交付節點", to: "/calendar" }
@@ -482,11 +734,35 @@ const AddButton = styled.button`
   min-height: 2.5rem;
   align-self: end;
   cursor: pointer;
+  padding: 0 0.8rem;
 
   &:disabled {
     opacity: 0.65;
     cursor: not-allowed;
   }
+`;
+
+const GhostButton = styled.button`
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  color: ${({ theme }) => theme.textPrimary};
+  background: rgb(255 255 255 / 0.06);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+`;
+
+const DangerButton = styled(GhostButton)`
+  border-color: rgb(255 142 142 / 0.4);
+  background: rgb(255 142 142 / 0.1);
+  color: #ffb2b2;
 `;
 
 const InlineInfo = styled.p`
@@ -572,4 +848,29 @@ const NextStep = styled.p`
   color: ${({ theme }) => theme.textPrimary};
   font-size: 0.86rem;
   font-weight: 700;
+`;
+
+const RowActions = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const EditFormGrid = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const EditActions = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
