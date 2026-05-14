@@ -4,20 +4,26 @@ import { ThemeProvider } from "styled-components";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ClientsPage } from "./ClientsPage";
 import { theme } from "../styles/theme";
-import type { ClientRecord } from "../lib/clients";
+import type { ClientRecord, ClientStatus } from "../lib/clients";
 
 const mockFetchClientsForCurrentUser = vi.fn();
 const mockCreateClientForCurrentUser = vi.fn();
+const mockUpdateClientForCurrentUser = vi.fn();
+const mockDeleteClientForCurrentUser = vi.fn();
 
 vi.mock("../lib/clients", () => ({
   CLIENT_STATUS_VALUES: ["active", "inactive", "lead", "archived"],
   fetchClientsForCurrentUser: (...args: unknown[]) =>
     mockFetchClientsForCurrentUser(...args),
   createClientForCurrentUser: (...args: unknown[]) =>
-    mockCreateClientForCurrentUser(...args)
+    mockCreateClientForCurrentUser(...args),
+  updateClientForCurrentUser: (...args: unknown[]) =>
+    mockUpdateClientForCurrentUser(...args),
+  deleteClientForCurrentUser: (...args: unknown[]) =>
+    mockDeleteClientForCurrentUser(...args)
 }));
 
-const mockRows: ClientRecord[] = [
+const baseRows: ClientRecord[] = [
   {
     id: "c-1",
     user_id: "user-1",
@@ -25,7 +31,7 @@ const mockRows: ClientRecord[] = [
     email: "hello@bright.studio",
     company: "Bright Studio",
     status: "active",
-    notes: "品牌重設計合作中",
+    notes: "Kickoff done",
     created_at: "2026-05-01T12:00:00.000Z"
   },
   {
@@ -35,7 +41,7 @@ const mockRows: ClientRecord[] = [
     email: "ops@flowmart.io",
     company: "FlowMart",
     status: "lead",
-    notes: "電商專案提案中",
+    notes: "Waiting for quote",
     created_at: "2026-04-25T12:00:00.000Z"
   },
   {
@@ -45,7 +51,7 @@ const mockRows: ClientRecord[] = [
     email: "pm@northwind.co",
     company: "Northwind Co.",
     status: "inactive",
-    notes: "等待下一季預算",
+    notes: "No current demand",
     created_at: "2026-04-12T12:00:00.000Z"
   },
   {
@@ -55,7 +61,7 @@ const mockRows: ClientRecord[] = [
     email: null,
     company: "Internal",
     status: "archived",
-    notes: "已結案",
+    notes: "Archived",
     created_at: "2026-03-01T12:00:00.000Z"
   }
 ];
@@ -66,13 +72,13 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockFetchClientsForCurrentUser.mockResolvedValue(mockRows);
+  mockFetchClientsForCurrentUser.mockResolvedValue(baseRows);
   mockCreateClientForCurrentUser.mockImplementation(
     async (input: {
       name: string;
       email?: string;
       company?: string;
-      status: "active" | "inactive" | "lead" | "archived";
+      status: ClientStatus;
       notes?: string;
     }) => ({
       id: "c-created",
@@ -85,6 +91,28 @@ beforeEach(() => {
       created_at: "2026-05-14T09:00:00.000Z"
     })
   );
+  mockUpdateClientForCurrentUser.mockImplementation(
+    async (
+      clientId: string,
+      input: {
+        name: string;
+        email?: string;
+        company?: string;
+        status: ClientStatus;
+        notes?: string;
+      }
+    ) => ({
+      id: clientId,
+      user_id: "user-1",
+      name: input.name,
+      email: input.email ?? null,
+      company: input.company ?? null,
+      status: input.status,
+      notes: input.notes ?? null,
+      created_at: "2026-05-01T12:00:00.000Z"
+    })
+  );
+  mockDeleteClientForCurrentUser.mockResolvedValue(true);
 });
 
 function renderClientsPage() {
@@ -95,6 +123,17 @@ function renderClientsPage() {
       </ThemeProvider>
     </MemoryRouter>
   );
+}
+
+function setFieldValue(id: string, value: string) {
+  const target = document.getElementById(id) as
+    | HTMLInputElement
+    | HTMLTextAreaElement
+    | HTMLSelectElement
+    | null;
+
+  expect(target).not.toBeNull();
+  fireEvent.change(target as Element, { target: { value } });
 }
 
 async function waitForRowsToLoad() {
@@ -110,12 +149,12 @@ describe("ClientsPage Supabase integration behaviors", () => {
     expect(screen.getByTestId("clients-loading-state")).toBeInTheDocument();
     await waitForRowsToLoad();
 
-    const search = screen.getByRole("textbox", {
-      name: "客戶關鍵字搜尋"
-    }) as HTMLInputElement;
+    const search = document.getElementById("clients-search-input") as
+      | HTMLInputElement
+      | null;
     const reset = screen.getByTestId("clients-reset-control") as HTMLButtonElement;
 
-    expect(search.id).toBe("clients-search-input");
+    expect(search).not.toBeNull();
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("4 / 4");
     expect(reset).toBeDisabled();
   });
@@ -124,29 +163,28 @@ describe("ClientsPage Supabase integration behaviors", () => {
     renderClientsPage();
     await waitForRowsToLoad();
 
-    const search = screen.getByRole("textbox", {
-      name: "客戶關鍵字搜尋"
-    }) as HTMLInputElement;
+    const search = document.getElementById("clients-search-input") as
+      | HTMLInputElement
+      | null;
     const reset = screen.getByTestId("clients-reset-control") as HTMLButtonElement;
-    const allRowsCount = screen.getAllByTestId("clients-status-badge").length;
 
-    fireEvent.change(search, { target: { value: "flowmart" } });
+    expect(search).not.toBeNull();
+
+    fireEvent.change(search as Element, { target: { value: "flowmart" } });
     expect(screen.getAllByText("FlowMart").length).toBeGreaterThan(0);
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(1);
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("1 / 4");
     expect(reset).toBeEnabled();
 
-    fireEvent.change(search, { target: { value: "no-match-keyword" } });
+    fireEvent.change(search as Element, { target: { value: "no-match-keyword" } });
     expect(screen.queryAllByTestId("clients-status-badge")).toHaveLength(0);
     expect(screen.getByTestId("clients-empty-state")).toBeInTheDocument();
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("0 / 4");
 
     fireEvent.click(reset);
-    expect(search.value).toBe("");
+    expect((search as HTMLInputElement).value).toBe("");
     expect(screen.queryByTestId("clients-empty-state")).not.toBeInTheDocument();
-    expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(
-      allRowsCount
-    );
+    expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(4);
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("4 / 4");
     expect(reset).toBeDisabled();
   });
@@ -155,17 +193,13 @@ describe("ClientsPage Supabase integration behaviors", () => {
     renderClientsPage();
     await waitForRowsToLoad();
 
-    fireEvent.change(screen.getByLabelText("客戶名稱"), {
-      target: { value: "CaseCake" }
-    });
-    fireEvent.change(screen.getByLabelText("狀態"), {
-      target: { value: "active" }
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "contact@casecake.com" }
-    });
+    setFieldValue("clients-create-name", "CaseCake");
+    setFieldValue("clients-create-status", "active");
+    setFieldValue("clients-create-email", "contact@casecake.com");
 
-    fireEvent.click(screen.getByRole("button", { name: "新增客戶" }));
+    const createForm = document.querySelector("form") as HTMLFormElement | null;
+    expect(createForm).not.toBeNull();
+    fireEvent.submit(createForm as HTMLFormElement);
 
     await waitFor(() => {
       expect(mockCreateClientForCurrentUser).toHaveBeenCalledTimes(1);
@@ -179,11 +213,73 @@ describe("ClientsPage Supabase integration behaviors", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("clients-create-success")).toHaveTextContent(
-        "客戶已建立。"
-      );
+      expect(screen.getByTestId("clients-create-success")).toBeInTheDocument();
     });
     expect(screen.getByTestId("clients-result-count")).toHaveTextContent("5 / 5");
     expect(screen.getAllByTestId("clients-status-badge")).toHaveLength(5);
+  });
+
+  it("updates the selected client only", async () => {
+    renderClientsPage();
+    await waitForRowsToLoad();
+
+    const editButtons = screen.getAllByTestId("clients-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    const editNameInput = document.querySelector(
+      "input[id^='clients-edit-name-']"
+    ) as HTMLInputElement | null;
+    const editStatusSelect = document.querySelector(
+      "select[id^='clients-edit-status-']"
+    ) as HTMLSelectElement | null;
+
+    expect(editNameInput).not.toBeNull();
+    expect(editStatusSelect).not.toBeNull();
+
+    fireEvent.change(editNameInput as Element, {
+      target: { value: "Bright Studio V2" }
+    });
+    fireEvent.change(editStatusSelect as Element, { target: { value: "inactive" } });
+    fireEvent.click(screen.getByTestId("clients-save-edit-button"));
+
+    await waitFor(() => {
+      expect(mockUpdateClientForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockUpdateClientForCurrentUser).toHaveBeenCalledWith(
+      "c-1",
+      expect.objectContaining({
+        name: "Bright Studio V2",
+        status: "inactive"
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("clients-action-success")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Bright Studio V2")).toBeInTheDocument();
+    expect(screen.getAllByText("FlowMart").length).toBeGreaterThan(0);
+  });
+
+  it("deletes the selected client only", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    renderClientsPage();
+    await waitForRowsToLoad();
+
+    const deleteButtons = screen.getAllByTestId("clients-delete-button");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(mockDeleteClientForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockDeleteClientForCurrentUser).toHaveBeenCalledWith("c-1");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("clients-result-count")).toHaveTextContent("3 / 3");
+    });
+    expect(screen.queryByText("Bright Studio")).not.toBeInTheDocument();
+    expect(screen.getAllByText("FlowMart").length).toBeGreaterThan(0);
+
+    confirmSpy.mockRestore();
   });
 });

@@ -26,6 +26,14 @@ export type CreateClientInput = {
   notes?: string;
 };
 
+export type UpdateClientInput = {
+  name: string;
+  email?: string;
+  company?: string;
+  status: ClientStatus;
+  notes?: string;
+};
+
 function normalizeOptionalText(value?: string) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
@@ -95,4 +103,66 @@ export async function createClientForCurrentUser(input: CreateClientInput) {
   }
 
   return data as ClientRecord;
+}
+
+export async function updateClientForCurrentUser(
+  clientId: string,
+  input: UpdateClientInput
+) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot update clients.");
+  }
+
+  const payload = {
+    name: input.name.trim(),
+    email: normalizeOptionalText(input.email),
+    company: normalizeOptionalText(input.company),
+    status: input.status,
+    notes: normalizeOptionalText(input.notes)
+  };
+
+  const { data, error } = await supabase
+    .from("clients")
+    .update(payload)
+    .eq("id", clientId)
+    .eq("user_id", userId)
+    .select("id, user_id, name, email, company, status, notes, created_at")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update client: ${error.message}`);
+  }
+
+  return data as ClientRecord;
+}
+
+export async function deleteClientForCurrentUser(clientId: string) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot delete clients.");
+  }
+
+  const { data, error } = await supabase
+    .from("clients")
+    .delete()
+    .eq("id", clientId)
+    .eq("user_id", userId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete client: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Client was not deleted. It may not exist or may not belong to the current user."
+    );
+  }
+
+  return true;
 }
