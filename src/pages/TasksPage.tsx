@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import {
   ALL_FILTER_VALUE,
@@ -24,67 +24,119 @@ import {
 import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
+import {
+  TASK_PRIORITY_VALUES,
+  TASK_STATUS_VALUES,
+  type CreateTaskInput,
+  type TaskPriority,
+  type TaskStatus,
+  createTaskForCurrentUser,
+  fetchTasksForCurrentUser
+} from "../lib/tasks";
 
-const summaryMetrics = [
-  { label: "全部任務", value: "12" },
-  { label: "進行中", value: "4" },
-  { label: "待審核", value: "3" },
-  { label: "今日到期", value: "2" }
-] as const;
+const STATUS_LABELS: Record<TaskStatus, string> = {
+  todo: "待處理",
+  in_progress: "進行中",
+  done: "已完成",
+  cancelled: "已取消"
+};
 
-const taskRows = [
-  {
-    task: "完成首頁線框調整",
-    project: "品牌官網重設計",
-    status: "進行中",
-    priority: "高",
-    dueDate: "5 月 24 日"
-  },
-  {
-    task: "檢查購物車測試結果",
-    project: "電商功能開發",
-    status: "待處理",
-    priority: "高",
-    dueDate: "5 月 22 日"
-  },
-  {
-    task: "整理提案修改內容",
-    project: "客戶提案製作",
-    status: "排程中",
-    priority: "中",
-    dueDate: "5 月 23 日"
-  },
-  {
-    task: "準備部署檢查",
-    project: "個人作品網站",
-    status: "待審核",
-    priority: "中",
-    dueDate: "5 月 25 日"
-  },
-  {
-    task: "追蹤客戶回覆狀態",
-    project: "品牌官網重設計",
-    status: "追蹤中",
-    priority: "低",
-    dueDate: "5 月 26 日"
-  },
-  {
-    task: "確認資訊架構",
-    project: "品牌官網重設計",
-    status: "已完成",
-    priority: "低",
-    dueDate: "5 月 18 日"
+const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  low: "低",
+  medium: "中",
+  high: "高",
+  urgent: "緊急"
+};
+
+type TaskFormState = CreateTaskInput;
+
+const initialFormState: TaskFormState = {
+  title: "",
+  status: "todo",
+  priority: "",
+  project_id: "",
+  due_date: ""
+};
+
+function formatDueDate(dateValue: string | null) {
+  if (!dateValue) {
+    return "未設定截止日";
   }
-] as const;
+
+  return dateValue;
+}
 
 export function TasksPage() {
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
-  const statusOptions = Array.from(new Set(taskRows.map((item) => item.status)));
+  const [tasks, setTasks] = useState<Awaited<ReturnType<typeof fetchTasksForCurrentUser>>>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [formState, setFormState] = useState<TaskFormState>(initialFormState);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadTasks() {
+      setIsLoading(true);
+      setFetchError(null);
+
+      try {
+        const rows = await fetchTasksForCurrentUser();
+        if (!active) {
+          return;
+        }
+        setTasks(rows);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : "目前無法讀取任務資料，請稍後再試。";
+        setFetchError(message);
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadTasks();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const statusOptions = useMemo(
+    () => TASK_STATUS_VALUES.map((status) => STATUS_LABELS[status]),
+    []
+  );
+
+  const filterToStatus = useMemo(
+    () =>
+      Object.fromEntries(
+        TASK_STATUS_VALUES.map((status) => [STATUS_LABELS[status], status])
+      ) as Record<string, TaskStatus>,
+    []
+  );
+
   const rowsAfterFilter =
     statusFilter === ALL_FILTER_VALUE
-      ? taskRows
-      : taskRows.filter((item) => item.status === statusFilter);
+      ? tasks
+      : tasks.filter(
+          (item) =>
+            STATUS_LABELS[item.status] === statusFilter ||
+            item.status === filterToStatus[statusFilter]
+        );
+
   const normalizedKeyword = keyword.trim().toLowerCase();
   const visibleRows = rowsAfterFilter.filter((item) => {
     if (!normalizedKeyword) {
@@ -92,37 +144,95 @@ export function TasksPage() {
     }
 
     const searchableText = [
-      item.task,
-      item.project,
+      item.title,
       item.status,
-      item.priority,
-      item.dueDate
+      STATUS_LABELS[item.status],
+      item.priority ?? "",
+      item.priority ? PRIORITY_LABELS[item.priority] : "",
+      item.project_id ?? "",
+      item.due_date ?? ""
     ]
       .join(" ")
       .toLowerCase();
 
     return searchableText.includes(normalizedKeyword);
   });
+
   const hasActiveCriteria =
     keyword.trim().length > 0 || statusFilter !== ALL_FILTER_VALUE;
+
+  const summaryMetrics = [
+    { label: "總任務數", value: tasks.length.toString() },
+    {
+      label: "待處理",
+      value: tasks.filter((item) => item.status === "todo").length.toString()
+    },
+    {
+      label: "進行中",
+      value: tasks
+        .filter((item) => item.status === "in_progress")
+        .length.toString()
+    },
+    {
+      label: "已完成",
+      value: tasks.filter((item) => item.status === "done").length.toString()
+    }
+  ] as const;
 
   function handleReset() {
     setKeyword("");
     setStatusFilter(ALL_FILTER_VALUE);
   }
 
+  function updateFormField<K extends keyof TaskFormState>(
+    key: K,
+    value: TaskFormState[K]
+  ) {
+    setFormState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleCreateTask(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCreateError(null);
+    setCreateSuccess(null);
+
+    if (!formState.title.trim()) {
+      setCreateError("請輸入任務標題。");
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const created = await createTaskForCurrentUser(formState);
+      setTasks((prev) => [created, ...prev]);
+      setFormState(initialFormState);
+      setCreateSuccess("任務已建立。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法建立任務，請稍後再試。";
+      setCreateError(message);
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
   return (
     <PageMain aria-labelledby="tasks-page-title">
       <PageHeader>
         <PageTitle id="tasks-page-title">任務管理</PageTitle>
-        <PageDescription>集中管理待辦、進行中、審核中與已完成的接案任務。</PageDescription>
+        <PageDescription>
+          集中追蹤待辦、進行與完成任務，確保交付節奏穩定。
+        </PageDescription>
       </PageHeader>
 
       <DashboardPanel aria-labelledby="tasks-summary-title">
         <DashboardSectionHeader
           titleId="tasks-summary-title"
           title="任務總覽"
-          description="快速掌握任務數量、處理狀態與近期到期節奏。"
+          description="快速掌握任務狀態分佈與當前執行重點。"
           withDivider
         />
         <MetricGrid>
@@ -138,17 +248,100 @@ export function TasksPage() {
       <DashboardPanel aria-labelledby="tasks-list-title">
         <DashboardSectionHeader
           titleId="tasks-list-title"
-          title="任務列表"
-          description="查看任務狀態、優先級與到期日，掌握每日執行節奏。"
+          title="任務清單"
+          description="可搜尋任務，並用最小流程新增任務。"
           withDivider
         />
+
+        <CreateForm onSubmit={handleCreateTask}>
+          <Field>
+            <FieldLabel htmlFor="tasks-create-title">任務標題</FieldLabel>
+            <FieldInput
+              id="tasks-create-title"
+              value={formState.title}
+              onChange={(event) => updateFormField("title", event.target.value)}
+              placeholder="例如：整理提案簡報"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="tasks-create-status">狀態</FieldLabel>
+            <FieldSelect
+              id="tasks-create-status"
+              value={formState.status}
+              onChange={(event) =>
+                updateFormField("status", event.target.value as TaskStatus)
+              }
+            >
+              {TASK_STATUS_VALUES.map((status) => (
+                <option key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </option>
+              ))}
+            </FieldSelect>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="tasks-create-priority">優先度</FieldLabel>
+            <FieldSelect
+              id="tasks-create-priority"
+              value={formState.priority}
+              onChange={(event) =>
+                updateFormField(
+                  "priority",
+                  event.target.value as CreateTaskInput["priority"]
+                )
+              }
+            >
+              <option value="">未設定</option>
+              {TASK_PRIORITY_VALUES.map((priority) => (
+                <option key={priority} value={priority}>
+                  {PRIORITY_LABELS[priority]}
+                </option>
+              ))}
+            </FieldSelect>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="tasks-create-due-date">截止日</FieldLabel>
+            <FieldInput
+              id="tasks-create-due-date"
+              type="date"
+              value={formState.due_date}
+              onChange={(event) => updateFormField("due_date", event.target.value)}
+            />
+          </Field>
+          <Field className="full-width">
+            <FieldLabel htmlFor="tasks-create-project-id">
+              專案 ID（可留白）
+            </FieldLabel>
+            <FieldInput
+              id="tasks-create-project-id"
+              value={formState.project_id}
+              onChange={(event) =>
+                updateFormField("project_id", event.target.value)
+              }
+              placeholder="若目前沒有專案選單可先留白"
+            />
+          </Field>
+          <AddButton type="submit" disabled={isCreating}>
+            {isCreating ? "建立中..." : "新增任務"}
+          </AddButton>
+        </CreateForm>
+
+        {createError ? (
+          <InlineError data-testid="tasks-create-error">{createError}</InlineError>
+        ) : null}
+        {createSuccess ? (
+          <InlineSuccess data-testid="tasks-create-success">
+            {createSuccess}
+          </InlineSuccess>
+        ) : null}
 
         <ToolbarRow>
           <PageSearchInput
             id="tasks-search-input"
             label="任務關鍵字搜尋"
             value={keyword}
-            placeholder="搜尋任務、專案或狀態..."
+            placeholder="搜尋任務標題、狀態或優先度..."
             onChange={setKeyword}
           />
           <PageFilterControl
@@ -158,13 +351,12 @@ export function TasksPage() {
             value={statusFilter}
             onChange={setStatusFilter}
           />
-          <AddButton type="button">新增任務（示意）</AddButton>
         </ToolbarRow>
         <PageListSummaryRow>
           <PageResultCount
             testId="tasks-result-count"
             visible={visibleRows.length}
-            total={taskRows.length}
+            total={tasks.length}
             noun="任務"
           />
           <PageResetControl
@@ -174,41 +366,54 @@ export function TasksPage() {
           />
         </PageListSummaryRow>
 
-        {visibleRows.length > 0 ? (
+        {isLoading ? (
+          <InlineInfo data-testid="tasks-loading-state">讀取任務中...</InlineInfo>
+        ) : null}
+        {fetchError ? (
+          <InlineError data-testid="tasks-error-state">{fetchError}</InlineError>
+        ) : null}
+
+        {!isLoading && !fetchError && visibleRows.length > 0 ? (
           <Rows>
             {visibleRows.map((item) => (
-              <Row key={`${item.task}-${item.dueDate}`}>
+              <Row key={item.id}>
                 <RowTop>
-                  <TaskName>{item.task}</TaskName>
+                  <TaskName>{item.title}</TaskName>
                   <StatusBadge data-testid="tasks-status-badge">
-                    {item.status}
+                    {STATUS_LABELS[item.status]}
                   </StatusBadge>
                 </RowTop>
                 <RowMeta>
-                  <MetaText>{item.project}</MetaText>
-                  <MetaText>{item.priority}</MetaText>
-                  <MetaText>{item.dueDate}</MetaText>
+                  <MetaText>{item.project_id || "未綁定專案"}</MetaText>
+                  <MetaText>
+                    {item.priority ? PRIORITY_LABELS[item.priority] : "未設定優先度"}
+                  </MetaText>
+                  <MetaText>{formatDueDate(item.due_date)}</MetaText>
                 </RowMeta>
               </Row>
             ))}
           </Rows>
-        ) : (
+        ) : null}
+
+        {!isLoading && !fetchError && visibleRows.length === 0 ? (
           <PageListEmptyState
             testId="tasks-empty-state"
             title="目前沒有符合條件的任務"
-            description="請調整關鍵字或狀態篩選條件，再試一次。"
+            description="可先新增任務，或調整關鍵字/狀態後再試一次。"
           />
-        )}
+        ) : null}
 
-        <DistributionText>任務狀態分布：待處理、進行中、待審核、已完成。</DistributionText>
+        <DistributionText>
+          任務狀態建議：優先處理截止日較近且高優先度的項目。
+        </DistributionText>
       </DashboardPanel>
       <PageNextStep
         titleId="tasks-next-step-title"
         title="下一步建議"
-        description="確認任務分布後，建議前往專案與行事曆同步進度。"
+        description="整理完任務後，可前往專案與行事曆頁面安排後續行動。"
         links={[
-          { label: "前往專案頁面，對齊任務與交付目標", to: "/projects" },
-          { label: "前往行事曆頁面，安排本週時段", to: "/calendar" }
+          { label: "前往專案頁面，確認任務對應專案", to: "/projects" },
+          { label: "前往行事曆頁面，安排執行時段", to: "/calendar" }
         ]}
       />
     </PageMain>
@@ -219,6 +424,50 @@ const MetricGrid = PageMetricGrid;
 const MetricCard = PageMetricCard;
 const MetricLabel = PageMetricLabel;
 const MetricValue = PageMetricValue;
+
+const CreateForm = styled.form`
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const Field = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+const FieldLabel = styled.label`
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.82rem;
+  font-weight: 700;
+`;
+
+const FieldInput = styled.input`
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+`;
+
+const FieldSelect = styled.select`
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+`;
 
 const ToolbarRow = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
@@ -234,8 +483,37 @@ const AddButton = styled.button`
   background: rgb(98 214 199 / 0.12);
   font-size: 0.9rem;
   font-weight: 700;
+  min-height: 2.5rem;
+  align-self: end;
+  cursor: pointer;
+  padding: 0 0.8rem;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 `;
 
+const InlineInfo = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
+const InlineError = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #ff8e8e;
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
+const InlineSuccess = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #79dfc9;
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
 
 const Rows = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
