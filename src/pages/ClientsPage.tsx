@@ -22,10 +22,13 @@ import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import {
   CLIENT_STATUS_VALUES,
+  type ClientRecord,
   type ClientStatus,
   type CreateClientInput,
   createClientForCurrentUser,
-  fetchClientsForCurrentUser
+  deleteClientForCurrentUser,
+  fetchClientsForCurrentUser,
+  updateClientForCurrentUser
 } from "../lib/clients";
 
 const STATUS_LABELS: Record<ClientStatus, string> = {
@@ -45,6 +48,16 @@ const initialFormState: ClientFormState = {
   notes: ""
 };
 
+function toFormState(client: ClientRecord): ClientFormState {
+  return {
+    name: client.name,
+    email: client.email ?? "",
+    company: client.company ?? "",
+    status: client.status,
+    notes: client.notes ?? ""
+  };
+}
+
 export function ClientsPage() {
   const [keyword, setKeyword] = useState("");
   const [clients, setClients] = useState<Awaited<
@@ -56,6 +69,18 @@ export function ClientsPage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [formState, setFormState] = useState<ClientFormState>(initialFormState);
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [editFormState, setEditFormState] = useState<ClientFormState>(
+    initialFormState
+  );
+  const [isUpdatingClientId, setIsUpdatingClientId] = useState<string | null>(
+    null
+  );
+  const [isDeletingClientId, setIsDeletingClientId] = useState<string | null>(
+    null
+  );
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -141,10 +166,31 @@ export function ClientsPage() {
     setFormState((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateEditFormField<K extends keyof ClientFormState>(
+    key: K,
+    value: ClientFormState[K]
+  ) {
+    setEditFormState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function startEdit(client: ClientRecord) {
+    setActionError(null);
+    setActionSuccess(null);
+    setEditingClientId(client.id);
+    setEditFormState(toFormState(client));
+  }
+
+  function cancelEdit() {
+    setEditingClientId(null);
+    setEditFormState(initialFormState);
+  }
+
   async function handleCreateClient(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreateError(null);
     setCreateSuccess(null);
+    setActionError(null);
+    setActionSuccess(null);
 
     if (!formState.name.trim()) {
       setCreateError("請輸入客戶名稱。");
@@ -166,6 +212,61 @@ export function ClientsPage() {
       setCreateError(message);
     } finally {
       setIsCreating(false);
+    }
+  }
+
+  async function handleUpdateClient(clientId: string) {
+    setActionError(null);
+    setActionSuccess(null);
+
+    if (!editFormState.name.trim()) {
+      setActionError("請輸入客戶名稱後再儲存。");
+      return;
+    }
+
+    setIsUpdatingClientId(clientId);
+
+    try {
+      const updated = await updateClientForCurrentUser(clientId, editFormState);
+      setClients((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+      setEditingClientId(null);
+      setEditFormState(initialFormState);
+      setActionSuccess("客戶已更新。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "目前無法更新客戶，請稍後再試。";
+      setActionError(message);
+    } finally {
+      setIsUpdatingClientId(null);
+    }
+  }
+
+  async function handleDeleteClient(clientId: string) {
+    setActionError(null);
+    setActionSuccess(null);
+
+    const shouldDelete = window.confirm("確定要刪除此客戶嗎？");
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeletingClientId(clientId);
+
+    try {
+      await deleteClientForCurrentUser(clientId);
+      setClients((prev) => prev.filter((item) => item.id !== clientId));
+      if (editingClientId === clientId) {
+        cancelEdit();
+      }
+      setActionSuccess("客戶已刪除。");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "目前無法刪除客戶，請稍後再試。";
+      setActionError(message);
+    } finally {
+      setIsDeletingClientId(null);
     }
   }
 
@@ -271,6 +372,14 @@ export function ClientsPage() {
             {createSuccess}
           </InlineSuccess>
         ) : null}
+        {actionError ? (
+          <InlineError data-testid="clients-action-error">{actionError}</InlineError>
+        ) : null}
+        {actionSuccess ? (
+          <InlineSuccess data-testid="clients-action-success">
+            {actionSuccess}
+          </InlineSuccess>
+        ) : null}
 
         <ToolbarRow>
           <PageSearchInput
@@ -304,22 +413,144 @@ export function ClientsPage() {
 
         {!isLoading && !fetchError && visibleRows.length > 0 ? (
           <Rows>
-            {visibleRows.map((item) => (
-              <Row key={item.id}>
-                <RowTop>
-                  <ClientName>{item.name}</ClientName>
-                  <StatusBadge data-testid="clients-status-badge">
-                    {STATUS_LABELS[item.status]}
-                  </StatusBadge>
-                </RowTop>
-                <RowMeta>
-                  <MetaText>{item.company || "未填寫公司"}</MetaText>
-                  <MetaText>{item.email || "未填寫 Email"}</MetaText>
-                  <MetaText>{item.status}</MetaText>
-                </RowMeta>
-                <NotesText>{item.notes || "尚未填寫客戶備註。"}</NotesText>
-              </Row>
-            ))}
+            {visibleRows.map((item) => {
+              const isEditing = editingClientId === item.id;
+              const isUpdating = isUpdatingClientId === item.id;
+              const isDeleting = isDeletingClientId === item.id;
+
+              return (
+                <Row key={item.id}>
+                  <RowTop>
+                    <ClientName>{item.name}</ClientName>
+                    <StatusBadge data-testid="clients-status-badge">
+                      {STATUS_LABELS[item.status]}
+                    </StatusBadge>
+                  </RowTop>
+                  <RowMeta>
+                    <MetaText>{item.company || "未填寫公司"}</MetaText>
+                    <MetaText>{item.email || "未填寫 Email"}</MetaText>
+                    <MetaText>{item.status}</MetaText>
+                  </RowMeta>
+                  <NotesText>{item.notes || "尚未填寫客戶備註。"}</NotesText>
+
+                  <RowActions>
+                    {!isEditing ? (
+                      <>
+                        <GhostButton
+                          type="button"
+                          data-testid="clients-edit-button"
+                          onClick={() => startEdit(item)}
+                          disabled={Boolean(isUpdatingClientId || isDeletingClientId)}
+                        >
+                          編輯
+                        </GhostButton>
+                        <DangerButton
+                          type="button"
+                          data-testid="clients-delete-button"
+                          onClick={() => void handleDeleteClient(item.id)}
+                          disabled={Boolean(isUpdatingClientId || isDeletingClientId)}
+                        >
+                          {isDeleting ? "刪除中..." : "刪除"}
+                        </DangerButton>
+                      </>
+                    ) : null}
+                  </RowActions>
+
+                  {isEditing ? (
+                    <EditFormGrid data-testid="clients-edit-form">
+                      <Field>
+                        <FieldLabel htmlFor={`clients-edit-name-${item.id}`}>
+                          客戶名稱
+                        </FieldLabel>
+                        <FieldInput
+                          id={`clients-edit-name-${item.id}`}
+                          value={editFormState.name}
+                          onChange={(event) =>
+                            updateEditFormField("name", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`clients-edit-status-${item.id}`}>
+                          狀態
+                        </FieldLabel>
+                        <FieldSelect
+                          id={`clients-edit-status-${item.id}`}
+                          value={editFormState.status}
+                          onChange={(event) =>
+                            updateEditFormField(
+                              "status",
+                              event.target.value as ClientStatus
+                            )
+                          }
+                        >
+                          {CLIENT_STATUS_VALUES.map((status) => (
+                            <option key={status} value={status}>
+                              {STATUS_LABELS[status]}
+                            </option>
+                          ))}
+                        </FieldSelect>
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`clients-edit-email-${item.id}`}>
+                          Email
+                        </FieldLabel>
+                        <FieldInput
+                          id={`clients-edit-email-${item.id}`}
+                          type="email"
+                          value={editFormState.email}
+                          onChange={(event) =>
+                            updateEditFormField("email", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`clients-edit-company-${item.id}`}>
+                          公司名稱
+                        </FieldLabel>
+                        <FieldInput
+                          id={`clients-edit-company-${item.id}`}
+                          value={editFormState.company}
+                          onChange={(event) =>
+                            updateEditFormField("company", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field className="full-width">
+                        <FieldLabel htmlFor={`clients-edit-notes-${item.id}`}>
+                          備註
+                        </FieldLabel>
+                        <FieldTextarea
+                          id={`clients-edit-notes-${item.id}`}
+                          value={editFormState.notes}
+                          onChange={(event) =>
+                            updateEditFormField("notes", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <EditActions>
+                        <GhostButton
+                          type="button"
+                          data-testid="clients-cancel-edit-button"
+                          onClick={cancelEdit}
+                          disabled={isUpdating}
+                        >
+                          取消
+                        </GhostButton>
+                        <AddButton
+                          type="button"
+                          data-testid="clients-save-edit-button"
+                          onClick={() => void handleUpdateClient(item.id)}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "更新中..." : "儲存更新"}
+                        </AddButton>
+                      </EditActions>
+                    </EditFormGrid>
+                  ) : null}
+                </Row>
+              );
+            })}
           </Rows>
         ) : null}
 
@@ -428,11 +659,35 @@ const AddButton = styled.button`
   min-height: 2.5rem;
   align-self: end;
   cursor: pointer;
+  padding: 0 0.8rem;
 
   &:disabled {
     opacity: 0.65;
     cursor: not-allowed;
   }
+`;
+
+const GhostButton = styled.button`
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  color: ${({ theme }) => theme.textPrimary};
+  background: rgb(255 255 255 / 0.06);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+`;
+
+const DangerButton = styled(GhostButton)`
+  border-color: rgb(255 142 142 / 0.4);
+  background: rgb(255 142 142 / 0.1);
+  color: #ffb2b2;
 `;
 
 const InlineInfo = styled.p`
@@ -511,6 +766,31 @@ const NotesText = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.86rem;
   line-height: 1.6;
+`;
+
+const RowActions = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const EditFormGrid = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const EditActions = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const ReminderText = styled.p`
