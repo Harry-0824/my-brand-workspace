@@ -56,4 +56,9 @@ const Select = styled.select`
   color: ${({ theme }) => theme.textPrimary};
   background: rgb(255 255 255 / 0.02);
   font-size: 0.9rem;
+
+  option {
+    color: ${({ theme }) => theme.textPrimary};
+    background: ${({ theme }) => theme.surface};
+  }
 `;

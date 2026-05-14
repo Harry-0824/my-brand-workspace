@@ -171,6 +171,9 @@ const FilterPreview = styled.div`
   color: ${({ theme }) => theme.textPrimary};
   background: rgb(255 255 255 / 0.02);
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 `;
 
@@ -222,9 +225,9 @@ const StatusBadge = styled.span`
 
 const RowMeta = styled.div`
   margin-top: ${({ theme }) => theme.spacing.xs};
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(8rem, 1fr) minmax(12rem, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
@@ -232,6 +235,14 @@ const MetaText = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.84rem;
   font-weight: 700;
+
+  &:nth-child(2) {
+    text-align: center;
+  }
+
+  &:nth-child(3) {
+    text-align: right;
+  }
 `;
 
 const ReminderText = styled.p`
