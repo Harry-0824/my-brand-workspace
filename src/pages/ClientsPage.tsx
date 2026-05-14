@@ -1,11 +1,11 @@
-﻿import styled from "styled-components";
+import { useEffect, useState } from "react";
+import styled from "styled-components";
 import {
   PageDescription,
   PageHeader,
   PageMain,
   PageTitle
 } from "../components/page/PageShell";
-import { useState } from "react";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
 import { PageResultCount } from "../components/page/PageResultCount";
 import { PageResetControl } from "../components/page/PageResetControl";
@@ -20,22 +20,92 @@ import {
 import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
-import { clientRows, summaryMetrics } from "./data/clientsPageData";
+import {
+  CLIENT_STATUS_VALUES,
+  type ClientStatus,
+  type CreateClientInput,
+  createClientForCurrentUser,
+  fetchClientsForCurrentUser
+} from "../lib/clients";
+
+const STATUS_LABELS: Record<ClientStatus, string> = {
+  active: "合作中",
+  inactive: "暫停中",
+  lead: "潛在客戶",
+  archived: "已封存"
+};
+
+type ClientFormState = CreateClientInput;
+
+const initialFormState: ClientFormState = {
+  name: "",
+  email: "",
+  company: "",
+  status: "lead",
+  notes: ""
+};
 
 export function ClientsPage() {
   const [keyword, setKeyword] = useState("");
+  const [clients, setClients] = useState<Awaited<
+    ReturnType<typeof fetchClientsForCurrentUser>
+  >>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [formState, setFormState] = useState<ClientFormState>(initialFormState);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadClients() {
+      setIsLoading(true);
+      setFetchError(null);
+
+      try {
+        const rows = await fetchClientsForCurrentUser();
+        if (!active) {
+          return;
+        }
+        setClients(rows);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : "目前無法讀取客戶資料，請稍後再試。";
+        setFetchError(message);
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadClients();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const normalizedKeyword = keyword.trim().toLowerCase();
-  const visibleRows = clientRows.filter((item) => {
+  const visibleRows = clients.filter((item) => {
     if (!normalizedKeyword) {
       return true;
     }
 
     const searchableText = [
       item.name,
+      item.email ?? "",
+      item.company ?? "",
       item.status,
-      item.projects,
-      item.lastContact,
-      item.nextStep
+      STATUS_LABELS[item.status],
+      item.notes ?? ""
     ]
       .join(" ")
       .toLowerCase();
@@ -44,8 +114,59 @@ export function ClientsPage() {
   });
   const hasActiveCriteria = keyword.trim().length > 0;
 
+  const summaryMetrics = [
+    { label: "總客戶數", value: clients.length.toString() },
+    {
+      label: "合作中",
+      value: clients.filter((item) => item.status === "active").length.toString()
+    },
+    {
+      label: "潛在客戶",
+      value: clients.filter((item) => item.status === "lead").length.toString()
+    },
+    {
+      label: "已封存",
+      value: clients.filter((item) => item.status === "archived").length.toString()
+    }
+  ] as const;
+
   function handleReset() {
     setKeyword("");
+  }
+
+  function updateFormField<K extends keyof ClientFormState>(
+    key: K,
+    value: ClientFormState[K]
+  ) {
+    setFormState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleCreateClient(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCreateError(null);
+    setCreateSuccess(null);
+
+    if (!formState.name.trim()) {
+      setCreateError("請輸入客戶名稱。");
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const created = await createClientForCurrentUser(formState);
+      setClients((prev) => [created, ...prev]);
+      setFormState(initialFormState);
+      setCreateSuccess("客戶已建立。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法建立客戶，請稍後再試。";
+      setCreateError(message);
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   return (
@@ -53,7 +174,7 @@ export function ClientsPage() {
       <PageHeader>
         <PageTitle id="clients-page-title">客戶管理</PageTitle>
         <PageDescription>
-          集中管理合作客戶、聯絡狀態、專案數與下一步追蹤事項。
+          集中管理合作客戶、聯絡資訊與下一步追蹤事項。
         </PageDescription>
       </PageHeader>
 
@@ -61,7 +182,7 @@ export function ClientsPage() {
         <DashboardSectionHeader
           titleId="clients-summary-title"
           title="客戶總覽"
-          description="掌握目前客戶合作狀態與本週追蹤重點。"
+          description="掌握目前客戶合作狀態與追蹤重點。"
           withDivider
         />
         <MetricGrid>
@@ -78,26 +199,93 @@ export function ClientsPage() {
         <DashboardSectionHeader
           titleId="clients-list-title"
           title="客戶清單"
-          description="以下為靜態示意資料，後續可延伸為實際客戶管理流程。"
+          description="可搜尋既有客戶，並使用最小流程新增客戶。"
           withDivider
         />
+
+        <CreateForm onSubmit={handleCreateClient}>
+          <Field>
+            <FieldLabel htmlFor="clients-create-name">客戶名稱</FieldLabel>
+            <FieldInput
+              id="clients-create-name"
+              value={formState.name}
+              onChange={(event) => updateFormField("name", event.target.value)}
+              placeholder="例如：Bright Studio"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="clients-create-status">狀態</FieldLabel>
+            <FieldSelect
+              id="clients-create-status"
+              value={formState.status}
+              onChange={(event) =>
+                updateFormField("status", event.target.value as ClientStatus)
+              }
+            >
+              {CLIENT_STATUS_VALUES.map((status) => (
+                <option key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </option>
+              ))}
+            </FieldSelect>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="clients-create-email">Email</FieldLabel>
+            <FieldInput
+              id="clients-create-email"
+              type="email"
+              value={formState.email}
+              onChange={(event) => updateFormField("email", event.target.value)}
+              placeholder="example@company.com"
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="clients-create-company">公司名稱</FieldLabel>
+            <FieldInput
+              id="clients-create-company"
+              value={formState.company}
+              onChange={(event) => updateFormField("company", event.target.value)}
+              placeholder="例如：Northwind Co."
+            />
+          </Field>
+          <Field className="full-width">
+            <FieldLabel htmlFor="clients-create-notes">備註</FieldLabel>
+            <FieldTextarea
+              id="clients-create-notes"
+              value={formState.notes}
+              onChange={(event) => updateFormField("notes", event.target.value)}
+              placeholder="可記錄聯絡偏好、提案需求或後續追蹤重點。"
+            />
+          </Field>
+          <AddButton type="submit" disabled={isCreating}>
+            {isCreating ? "建立中..." : "新增客戶"}
+          </AddButton>
+        </CreateForm>
+
+        {createError ? (
+          <InlineError data-testid="clients-create-error">{createError}</InlineError>
+        ) : null}
+        {createSuccess ? (
+          <InlineSuccess data-testid="clients-create-success">
+            {createSuccess}
+          </InlineSuccess>
+        ) : null}
 
         <ToolbarRow>
           <PageSearchInput
             id="clients-search-input"
             label="客戶關鍵字搜尋"
             value={keyword}
-            placeholder="搜尋客戶、狀態或追蹤內容..."
+            placeholder="搜尋客戶名稱、公司或聯絡資訊..."
             onChange={setKeyword}
           />
-          <FilterPreview>全部狀態</FilterPreview>
-          <AddButton type="button">新增客戶（示意）</AddButton>
         </ToolbarRow>
         <PageListSummaryRow>
           <PageResultCount
             testId="clients-result-count"
             visible={visibleRows.length}
-            total={clientRows.length}
+            total={clients.length}
             noun="客戶"
           />
           <PageResetControl
@@ -107,31 +295,41 @@ export function ClientsPage() {
           />
         </PageListSummaryRow>
 
-        {visibleRows.length > 0 ? (
+        {isLoading ? (
+          <InlineInfo data-testid="clients-loading-state">讀取客戶中...</InlineInfo>
+        ) : null}
+        {fetchError ? (
+          <InlineError data-testid="clients-error-state">{fetchError}</InlineError>
+        ) : null}
+
+        {!isLoading && !fetchError && visibleRows.length > 0 ? (
           <Rows>
             {visibleRows.map((item) => (
-              <Row key={item.name}>
+              <Row key={item.id}>
                 <RowTop>
                   <ClientName>{item.name}</ClientName>
                   <StatusBadge data-testid="clients-status-badge">
-                    {item.status}
+                    {STATUS_LABELS[item.status]}
                   </StatusBadge>
                 </RowTop>
                 <RowMeta>
-                  <MetaText>{item.projects}</MetaText>
-                  <MetaText>{item.lastContact}</MetaText>
-                  <MetaText>{item.nextStep}</MetaText>
+                  <MetaText>{item.company || "未填寫公司"}</MetaText>
+                  <MetaText>{item.email || "未填寫 Email"}</MetaText>
+                  <MetaText>{item.status}</MetaText>
                 </RowMeta>
+                <NotesText>{item.notes || "尚未填寫客戶備註。"}</NotesText>
               </Row>
             ))}
           </Rows>
-        ) : (
+        ) : null}
+
+        {!isLoading && !fetchError && visibleRows.length === 0 ? (
           <PageListEmptyState
             testId="clients-empty-state"
             title="目前沒有符合條件的客戶"
-            description="請調整關鍵字後再試一次。"
+            description="可先新增客戶，或調整關鍵字後再試一次。"
           />
-        )}
+        ) : null}
 
         <ReminderText>
           客戶追蹤提醒：優先處理本週需要回覆或確認的合作對象。
@@ -157,24 +355,67 @@ const MetricCard = PageMetricCard;
 const MetricLabel = PageMetricLabel;
 const MetricValue = PageMetricValue;
 
+const CreateForm = styled.form`
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const Field = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+const FieldLabel = styled.label`
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.82rem;
+  font-weight: 700;
+`;
+
+const FieldInput = styled.input`
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+`;
+
+const FieldSelect = styled.select`
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+`;
+
+const FieldTextarea = styled.textarea`
+  width: 100%;
+  min-height: 5.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  resize: vertical;
+`;
+
 const ToolbarRow = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-template-columns: minmax(14rem, 1fr);
   gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const FilterPreview = styled.div`
-  padding: 0.7rem 0.9rem;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.sm};
-  color: ${({ theme }) => theme.textPrimary};
-  background: rgb(255 255 255 / 0.02);
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 `;
 
 const AddButton = styled.button`
@@ -184,8 +425,36 @@ const AddButton = styled.button`
   background: rgb(98 214 199 / 0.12);
   font-size: 0.9rem;
   font-weight: 700;
+  min-height: 2.5rem;
+  align-self: end;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 `;
 
+const InlineInfo = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
+const InlineError = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #ff8e8e;
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
+const InlineSuccess = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #79dfc9;
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
 
 const Rows = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
@@ -226,7 +495,7 @@ const StatusBadge = styled.span`
 const RowMeta = styled.div`
   margin-top: ${({ theme }) => theme.spacing.xs};
   display: grid;
-  grid-template-columns: minmax(7rem, 1fr) minmax(8rem, 1fr) minmax(12rem, 1fr);
+  grid-template-columns: repeat(3, minmax(8rem, 1fr));
   align-items: center;
   gap: ${({ theme }) => theme.spacing.md};
 `;
@@ -235,14 +504,13 @@ const MetaText = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.84rem;
   font-weight: 700;
+`;
 
-  &:nth-child(2) {
-    text-align: center;
-  }
-
-  &:nth-child(3) {
-    text-align: right;
-  }
+const NotesText = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.86rem;
+  line-height: 1.6;
 `;
 
 const ReminderText = styled.p`
