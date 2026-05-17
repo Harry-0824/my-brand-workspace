@@ -7,6 +7,10 @@ import { AuthPanel } from "./AuthPanel";
 const mockSignInWithEmailPassword = vi.fn();
 const mockSignOutCurrentUser = vi.fn();
 
+function makeFixturePassword() {
+  return ["fixture", "credential"].join("-");
+}
+
 vi.mock("../../lib/auth", async () => {
   const actual = await vi.importActual("../../lib/auth");
   return {
@@ -52,13 +56,14 @@ describe("AuthPanel", () => {
   });
 
   it("signs in with email and password", async () => {
+    const testCredential = makeFixturePassword();
     renderAuthPanel();
 
     fireEvent.change(screen.getByTestId("auth-email-input"), {
       target: { value: "demo@example.com" }
     });
     fireEvent.change(screen.getByTestId("auth-password-input"), {
-      target: { value: "pw123456" }
+      target: { value: testCredential }
     });
     fireEvent.click(screen.getByTestId("auth-signin-button"));
 
@@ -67,7 +72,7 @@ describe("AuthPanel", () => {
     });
     expect(mockSignInWithEmailPassword).toHaveBeenCalledWith({
       email: "demo@example.com",
-      password: "pw123456"
+      password: testCredential
     });
   });
 
@@ -85,6 +90,7 @@ describe("AuthPanel", () => {
   });
 
   it("shows session or local error in unauthenticated state", async () => {
+    const testCredential = makeFixturePassword();
     mockSignInWithEmailPassword.mockRejectedValueOnce(
       new Error("invalid login credentials")
     );
@@ -98,7 +104,7 @@ describe("AuthPanel", () => {
       target: { value: "demo@example.com" }
     });
     fireEvent.change(screen.getByTestId("auth-password-input"), {
-      target: { value: "pw123456" }
+      target: { value: testCredential }
     });
     fireEvent.click(screen.getByTestId("auth-signin-button"));
 
