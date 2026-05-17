@@ -1,5 +1,5 @@
-﻿import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
 import { ALL_FILTER_VALUE, PageFilterControl } from "../components/page/PageFilterControl";
 import { PageSearchInput } from "../components/page/PageSearchInput";
 import { PageListEmptyState } from "../components/page/PageListEmptyState";
@@ -21,16 +21,120 @@ import {
 import { PageNextStep } from "../components/page/PageNextStep";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
-import { invoiceRows, summaryMetrics } from "./data/invoicesPageData";
+import {
+  INCOME_RECORD_STATUS_VALUES,
+  type CreateIncomeRecordInput,
+  type IncomeRecordStatus,
+  createIncomeRecordForCurrentUser,
+  fetchIncomeRecordsForCurrentUser
+} from "../lib/incomeRecords";
+
+const STATUS_LABELS: Record<IncomeRecordStatus, string> = {
+  pending: "待收款",
+  paid: "已收款",
+  overdue: "逾期",
+  cancelled: "已取消"
+};
+
+type IncomeRecordFormState = CreateIncomeRecordInput;
+
+const initialFormState: IncomeRecordFormState = {
+  title: "",
+  amount: "",
+  status: "pending",
+  project_id: "",
+  client_id: "",
+  due_date: "",
+  received_date: "",
+  notes: ""
+};
+
+function formatCurrency(amount: number) {
+  return `NT$${amount.toLocaleString("zh-TW", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+function formatDate(dateValue: string | null) {
+  if (!dateValue) {
+    return "未設定";
+  }
+
+  return dateValue;
+}
 
 export function InvoicesPage() {
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
-  const statusOptions = Array.from(new Set(invoiceRows.map((item) => item.status)));
+  const [rows, setRows] = useState<Awaited<ReturnType<typeof fetchIncomeRecordsForCurrentUser>>>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [formState, setFormState] = useState<IncomeRecordFormState>(initialFormState);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadIncomeRecords() {
+      setIsLoading(true);
+      setFetchError(null);
+
+      try {
+        const records = await fetchIncomeRecordsForCurrentUser();
+        if (!active) {
+          return;
+        }
+        setRows(records);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : "目前無法讀取收款紀錄，請稍後再試。";
+        setFetchError(message);
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadIncomeRecords();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const statusOptions = useMemo(
+    () => INCOME_RECORD_STATUS_VALUES.map((status) => STATUS_LABELS[status]),
+    []
+  );
+
+  const filterToStatus = useMemo(
+    () =>
+      Object.fromEntries(
+        INCOME_RECORD_STATUS_VALUES.map((status) => [STATUS_LABELS[status], status])
+      ) as Record<string, IncomeRecordStatus>,
+    []
+  );
+
   const rowsAfterFilter =
     statusFilter === ALL_FILTER_VALUE
-      ? invoiceRows
-      : invoiceRows.filter((item) => item.status === statusFilter);
+      ? rows
+      : rows.filter(
+          (item) =>
+            STATUS_LABELS[item.status] === statusFilter ||
+            item.status === filterToStatus[statusFilter]
+        );
+
   const normalizedKeyword = keyword.trim().toLowerCase();
   const visibleRows = rowsAfterFilter.filter((item) => {
     if (!normalizedKeyword) {
@@ -38,23 +142,86 @@ export function InvoicesPage() {
     }
 
     const searchableText = [
-      item.client,
-      item.item,
-      item.amount,
+      item.title,
       item.status,
-      item.due
+      STATUS_LABELS[item.status],
+      item.amount.toString(),
+      item.project_id ?? "",
+      item.client_id ?? "",
+      item.due_date ?? "",
+      item.received_date ?? "",
+      item.notes ?? ""
     ]
       .join(" ")
       .toLowerCase();
 
     return searchableText.includes(normalizedKeyword);
   });
+
   const hasActiveCriteria =
     keyword.trim().length > 0 || statusFilter !== ALL_FILTER_VALUE;
+
+  const totalAmount = rows.reduce((sum, item) => sum + item.amount, 0);
+  const paidAmount = rows
+    .filter((item) => item.status === "paid")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const pendingAmount = rows
+    .filter((item) => item.status === "pending" || item.status === "overdue")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const overdueCount = rows.filter((item) => item.status === "overdue").length;
+
+  const summaryMetrics = [
+    { label: "收款項目總數", value: rows.length.toString() },
+    { label: "累計收款金額", value: formatCurrency(totalAmount) },
+    { label: "待追蹤金額", value: formatCurrency(pendingAmount) },
+    { label: "已收款金額", value: formatCurrency(paidAmount) },
+    { label: "逾期項目", value: overdueCount.toString() }
+  ] as const;
 
   function handleReset() {
     setKeyword("");
     setStatusFilter(ALL_FILTER_VALUE);
+  }
+
+  function updateFormField<K extends keyof IncomeRecordFormState>(
+    key: K,
+    value: IncomeRecordFormState[K]
+  ) {
+    setFormState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleCreateIncomeRecord(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCreateError(null);
+    setCreateSuccess(null);
+
+    if (!formState.title.trim()) {
+      setCreateError("請輸入收款標題。");
+      return;
+    }
+
+    const parsedAmount = Number.parseFloat(formState.amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+      setCreateError("請輸入有效且不為負數的金額。");
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const created = await createIncomeRecordForCurrentUser(formState);
+      setRows((prev) => [created, ...prev]);
+      setFormState(initialFormState);
+      setCreateSuccess("收款紀錄已建立。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法建立收款紀錄，請稍後再試。";
+      setCreateError(message);
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   return (
@@ -87,16 +254,121 @@ export function InvoicesPage() {
         <DashboardSectionHeader
           titleId="invoices-list-title"
           title="發票與收款項目"
-          description="以下為靜態示意資料，後續可延伸為實際收款追蹤流程。"
+          description="可檢視並建立收款紀錄，追蹤付款狀態。"
           withDivider
         />
+
+        <CreateForm onSubmit={handleCreateIncomeRecord}>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-title">收款標題</FieldLabel>
+            <FieldInput
+              id="invoices-create-title"
+              value={formState.title}
+              onChange={(event) => updateFormField("title", event.target.value)}
+              placeholder="例如：網站尾款"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-amount">金額</FieldLabel>
+            <FieldInput
+              id="invoices-create-amount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formState.amount}
+              onChange={(event) => updateFormField("amount", event.target.value)}
+              placeholder="例如：12000"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-status">狀態</FieldLabel>
+            <FieldSelect
+              id="invoices-create-status"
+              value={formState.status}
+              onChange={(event) =>
+                updateFormField("status", event.target.value as IncomeRecordStatus)
+              }
+            >
+              {INCOME_RECORD_STATUS_VALUES.map((status) => (
+                <option key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </option>
+              ))}
+            </FieldSelect>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-due-date">到期日</FieldLabel>
+            <FieldInput
+              id="invoices-create-due-date"
+              type="date"
+              value={formState.due_date}
+              onChange={(event) => updateFormField("due_date", event.target.value)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-received-date">收款日</FieldLabel>
+            <FieldInput
+              id="invoices-create-received-date"
+              type="date"
+              value={formState.received_date}
+              onChange={(event) =>
+                updateFormField("received_date", event.target.value)
+              }
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-project-id">專案 ID（可留白）</FieldLabel>
+            <FieldInput
+              id="invoices-create-project-id"
+              value={formState.project_id}
+              onChange={(event) =>
+                updateFormField("project_id", event.target.value)
+              }
+              placeholder="若目前無專案選單可先留白"
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invoices-create-client-id">客戶 ID（可留白）</FieldLabel>
+            <FieldInput
+              id="invoices-create-client-id"
+              value={formState.client_id}
+              onChange={(event) =>
+                updateFormField("client_id", event.target.value)
+              }
+              placeholder="若目前無客戶選單可先留白"
+            />
+          </Field>
+          <Field className="full-width">
+            <FieldLabel htmlFor="invoices-create-notes">備註</FieldLabel>
+            <FieldTextarea
+              id="invoices-create-notes"
+              value={formState.notes}
+              onChange={(event) => updateFormField("notes", event.target.value)}
+              placeholder="可記錄付款方式、追蹤備註等"
+            />
+          </Field>
+          <AddButton type="submit" disabled={isCreating}>
+            {isCreating ? "建立中..." : "新增收款紀錄"}
+          </AddButton>
+        </CreateForm>
+
+        {createError ? (
+          <InlineError data-testid="invoices-create-error">{createError}</InlineError>
+        ) : null}
+        {createSuccess ? (
+          <InlineSuccess data-testid="invoices-create-success">
+            {createSuccess}
+          </InlineSuccess>
+        ) : null}
 
         <ToolbarRow>
           <PageSearchInput
             id="invoices-search-input"
             label="收款關鍵字搜尋"
             value={keyword}
-            placeholder="搜尋客戶、項目或金額..."
+            placeholder="搜尋標題、狀態、金額或備註..."
             onChange={setKeyword}
           />
           <PageFilterControl
@@ -106,13 +378,12 @@ export function InvoicesPage() {
             value={statusFilter}
             onChange={setStatusFilter}
           />
-          <AddButton type="button">新增發票草稿（示意）</AddButton>
         </ToolbarRow>
         <PageListSummaryRow>
           <PageResultCount
             testId="invoices-result-count"
             visible={visibleRows.length}
-            total={invoiceRows.length}
+            total={rows.length}
             noun="收款項目"
           />
           <PageResetControl
@@ -122,31 +393,45 @@ export function InvoicesPage() {
           />
         </PageListSummaryRow>
 
-        {visibleRows.length > 0 ? (
+        {isLoading ? (
+          <InlineInfo data-testid="invoices-loading-state">讀取收款紀錄中...</InlineInfo>
+        ) : null}
+        {fetchError ? (
+          <InlineError data-testid="invoices-error-state">{fetchError}</InlineError>
+        ) : null}
+
+        {!isLoading && !fetchError && visibleRows.length > 0 ? (
           <Rows>
             {visibleRows.map((item) => (
-              <Row key={`${item.client}-${item.item}`}>
+              <Row key={item.id}>
                 <RowTop>
-                  <ClientName>{item.client}</ClientName>
+                  <ClientName>{item.title}</ClientName>
                   <StatusBadge data-testid="invoices-status-badge">
-                    {item.status}
+                    {STATUS_LABELS[item.status]}
                   </StatusBadge>
                 </RowTop>
                 <RowMeta>
-                  <MetaText>{item.item}</MetaText>
-                  <MetaText>{item.amount}</MetaText>
-                  <MetaText>{item.due}</MetaText>
+                  <MetaText>{formatCurrency(item.amount)}</MetaText>
+                  <MetaText>到期：{formatDate(item.due_date)}</MetaText>
+                  <MetaText>收款：{formatDate(item.received_date)}</MetaText>
                 </RowMeta>
+                <RowMeta>
+                  <MetaText>專案：{item.project_id || "未綁定"}</MetaText>
+                  <MetaText>客戶：{item.client_id || "未綁定"}</MetaText>
+                </RowMeta>
+                <NotesText>{item.notes || "未填寫備註"}</NotesText>
               </Row>
             ))}
           </Rows>
-        ) : (
+        ) : null}
+
+        {!isLoading && !fetchError && visibleRows.length === 0 ? (
           <PageListEmptyState
             testId="invoices-empty-state"
             title="目前沒有符合條件的收款項目"
-            description="請調整關鍵字或狀態篩選條件，再試一次。"
+            description="可先新增收款紀錄，或調整關鍵字與篩選條件。"
           />
-        )}
+        ) : null}
 
         <ReminderText>收款提醒：優先追蹤本週到期與待開立發票的項目。</ReminderText>
       </DashboardPanel>
@@ -170,6 +455,62 @@ const MetricCard = PageMetricCard;
 const MetricLabel = PageMetricLabel;
 const MetricValue = PageMetricValue;
 
+const CreateForm = styled.form`
+  margin-top: ${({ theme }) => theme.spacing.lg};
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const Field = styled.div`
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.xs};
+`;
+
+const FieldLabel = styled.label`
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.82rem;
+  font-weight: 700;
+`;
+
+const FieldInput = styled.input`
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+`;
+
+const FieldSelect = styled.select`
+  width: 100%;
+  height: 2.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+`;
+
+const FieldTextarea = styled.textarea`
+  width: 100%;
+  min-height: 5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  background: rgb(255 255 255 / 0.04);
+  color: ${({ theme }) => theme.textPrimary};
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  resize: vertical;
+`;
+
 const ToolbarRow = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
@@ -184,8 +525,37 @@ const AddButton = styled.button`
   background: rgb(98 214 199 / 0.12);
   font-size: 0.9rem;
   font-weight: 700;
+  min-height: 2.5rem;
+  align-self: end;
+  cursor: pointer;
+  padding: 0 0.8rem;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 `;
 
+const InlineInfo = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
+const InlineError = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #ff8e8e;
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
+
+const InlineSuccess = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #79dfc9;
+  font-size: 0.85rem;
+  font-weight: 700;
+`;
 
 const Rows = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
@@ -237,11 +607,16 @@ const MetaText = styled.p`
   font-weight: 700;
 `;
 
+const NotesText = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.86rem;
+  line-height: 1.6;
+`;
+
 const ReminderText = styled.p`
   margin-top: ${({ theme }) => theme.spacing.md};
   color: ${({ theme }) => theme.textPrimary};
   font-size: 0.9rem;
   line-height: 1.7;
 `;
-
-
