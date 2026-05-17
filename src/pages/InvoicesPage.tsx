@@ -24,9 +24,13 @@ import { DashboardSectionHeader } from "../components/dashboard/shared/Dashboard
 import {
   INCOME_RECORD_STATUS_VALUES,
   type CreateIncomeRecordInput,
+  type IncomeRecord,
   type IncomeRecordStatus,
   createIncomeRecordForCurrentUser,
-  fetchIncomeRecordsForCurrentUser
+  deleteIncomeRecordForCurrentUser,
+  fetchIncomeRecordsForCurrentUser,
+  updateIncomeRecordForCurrentUser,
+  type UpdateIncomeRecordInput
 } from "../lib/incomeRecords";
 
 const STATUS_LABELS: Record<IncomeRecordStatus, string> = {
@@ -36,7 +40,7 @@ const STATUS_LABELS: Record<IncomeRecordStatus, string> = {
   cancelled: "已取消"
 };
 
-type IncomeRecordFormState = CreateIncomeRecordInput;
+type IncomeRecordFormState = UpdateIncomeRecordInput;
 
 const initialFormState: IncomeRecordFormState = {
   title: "",
@@ -48,6 +52,19 @@ const initialFormState: IncomeRecordFormState = {
   received_date: "",
   notes: ""
 };
+
+function toFormState(incomeRecord: IncomeRecord): IncomeRecordFormState {
+  return {
+    title: incomeRecord.title,
+    amount: incomeRecord.amount.toString(),
+    status: incomeRecord.status,
+    project_id: incomeRecord.project_id ?? "",
+    client_id: incomeRecord.client_id ?? "",
+    due_date: incomeRecord.due_date ?? "",
+    received_date: incomeRecord.received_date ?? "",
+    notes: incomeRecord.notes ?? ""
+  };
+}
 
 function formatCurrency(amount: number) {
   return `NT$${amount.toLocaleString("zh-TW", {
@@ -76,6 +93,14 @@ export function InvoicesPage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [formState, setFormState] = useState<IncomeRecordFormState>(initialFormState);
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [editFormState, setEditFormState] = useState<IncomeRecordFormState>(
+    initialFormState
+  );
+  const [isUpdatingRecordId, setIsUpdatingRecordId] = useState<string | null>(null);
+  const [isDeletingRecordId, setIsDeletingRecordId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -190,10 +215,31 @@ export function InvoicesPage() {
     setFormState((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateEditFormField<K extends keyof IncomeRecordFormState>(
+    key: K,
+    value: IncomeRecordFormState[K]
+  ) {
+    setEditFormState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function startEdit(incomeRecord: IncomeRecord) {
+    setActionError(null);
+    setActionSuccess(null);
+    setEditingRecordId(incomeRecord.id);
+    setEditFormState(toFormState(incomeRecord));
+  }
+
+  function cancelEdit() {
+    setEditingRecordId(null);
+    setEditFormState(initialFormState);
+  }
+
   async function handleCreateIncomeRecord(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreateError(null);
     setCreateSuccess(null);
+    setActionError(null);
+    setActionSuccess(null);
 
     if (!formState.title.trim()) {
       setCreateError("請輸入收款標題。");
@@ -221,6 +267,74 @@ export function InvoicesPage() {
       setCreateError(message);
     } finally {
       setIsCreating(false);
+    }
+  }
+
+  async function handleUpdateIncomeRecord(incomeRecordId: string) {
+    setActionError(null);
+    setActionSuccess(null);
+
+    if (!editFormState.title.trim()) {
+      setActionError("請輸入收款標題後再儲存。");
+      return;
+    }
+
+    const parsedAmount = Number.parseFloat(editFormState.amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+      setActionError("請輸入有效且不為負數的金額。");
+      return;
+    }
+
+    setIsUpdatingRecordId(incomeRecordId);
+
+    try {
+      const updated = await updateIncomeRecordForCurrentUser(
+        incomeRecordId,
+        editFormState
+      );
+      setRows((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+      setEditingRecordId(null);
+      setEditFormState(initialFormState);
+      setActionSuccess("收款紀錄已更新。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法更新收款紀錄，請稍後再試。";
+      setActionError(message);
+    } finally {
+      setIsUpdatingRecordId(null);
+    }
+  }
+
+  async function handleDeleteIncomeRecord(incomeRecordId: string) {
+    setActionError(null);
+    setActionSuccess(null);
+
+    const shouldDelete = window.confirm("確定要刪除此收款紀錄嗎？");
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeletingRecordId(incomeRecordId);
+
+    try {
+      await deleteIncomeRecordForCurrentUser(incomeRecordId);
+      setRows((prev) => prev.filter((item) => item.id !== incomeRecordId));
+      if (editingRecordId === incomeRecordId) {
+        cancelEdit();
+      }
+      setActionSuccess("收款紀錄已刪除。");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "目前無法刪除收款紀錄，請稍後再試。";
+      setActionError(message);
+    } finally {
+      setIsDeletingRecordId(null);
     }
   }
 
@@ -362,6 +476,14 @@ export function InvoicesPage() {
             {createSuccess}
           </InlineSuccess>
         ) : null}
+        {actionError ? (
+          <InlineError data-testid="invoices-action-error">{actionError}</InlineError>
+        ) : null}
+        {actionSuccess ? (
+          <InlineSuccess data-testid="invoices-action-success">
+            {actionSuccess}
+          </InlineSuccess>
+        ) : null}
 
         <ToolbarRow>
           <PageSearchInput
@@ -402,26 +524,188 @@ export function InvoicesPage() {
 
         {!isLoading && !fetchError && visibleRows.length > 0 ? (
           <Rows>
-            {visibleRows.map((item) => (
-              <Row key={item.id}>
-                <RowTop>
-                  <ClientName>{item.title}</ClientName>
-                  <StatusBadge data-testid="invoices-status-badge">
-                    {STATUS_LABELS[item.status]}
-                  </StatusBadge>
-                </RowTop>
-                <RowMeta>
-                  <MetaText>{formatCurrency(item.amount)}</MetaText>
-                  <MetaText>到期：{formatDate(item.due_date)}</MetaText>
-                  <MetaText>收款：{formatDate(item.received_date)}</MetaText>
-                </RowMeta>
-                <RowMeta>
-                  <MetaText>專案：{item.project_id || "未綁定"}</MetaText>
-                  <MetaText>客戶：{item.client_id || "未綁定"}</MetaText>
-                </RowMeta>
-                <NotesText>{item.notes || "未填寫備註"}</NotesText>
-              </Row>
-            ))}
+            {visibleRows.map((item) => {
+              const isEditing = editingRecordId === item.id;
+              const isUpdating = isUpdatingRecordId === item.id;
+              const isDeleting = isDeletingRecordId === item.id;
+
+              return (
+                <Row key={item.id}>
+                  <RowTop>
+                    <ClientName>{item.title}</ClientName>
+                    <StatusBadge data-testid="invoices-status-badge">
+                      {STATUS_LABELS[item.status]}
+                    </StatusBadge>
+                  </RowTop>
+                  <RowMeta>
+                    <MetaText>{formatCurrency(item.amount)}</MetaText>
+                    <MetaText>到期：{formatDate(item.due_date)}</MetaText>
+                    <MetaText>收款：{formatDate(item.received_date)}</MetaText>
+                  </RowMeta>
+                  <RowMeta>
+                    <MetaText>專案：{item.project_id || "未綁定"}</MetaText>
+                    <MetaText>客戶：{item.client_id || "未綁定"}</MetaText>
+                  </RowMeta>
+                  <NotesText>{item.notes || "未填寫備註"}</NotesText>
+
+                  <RowActions>
+                    {!isEditing ? (
+                      <>
+                        <GhostButton
+                          type="button"
+                          data-testid="invoices-edit-button"
+                          onClick={() => startEdit(item)}
+                          disabled={Boolean(isUpdatingRecordId || isDeletingRecordId)}
+                        >
+                          編輯
+                        </GhostButton>
+                        <DangerButton
+                          type="button"
+                          data-testid="invoices-delete-button"
+                          onClick={() => void handleDeleteIncomeRecord(item.id)}
+                          disabled={Boolean(isUpdatingRecordId || isDeletingRecordId)}
+                        >
+                          {isDeleting ? "刪除中..." : "刪除"}
+                        </DangerButton>
+                      </>
+                    ) : null}
+                  </RowActions>
+
+                  {isEditing ? (
+                    <EditFormGrid data-testid="invoices-edit-form">
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-title-${item.id}`}>
+                          收款標題
+                        </FieldLabel>
+                        <FieldInput
+                          id={`invoices-edit-title-${item.id}`}
+                          value={editFormState.title}
+                          onChange={(event) =>
+                            updateEditFormField("title", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-amount-${item.id}`}>
+                          金額
+                        </FieldLabel>
+                        <FieldInput
+                          id={`invoices-edit-amount-${item.id}`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={editFormState.amount}
+                          onChange={(event) =>
+                            updateEditFormField("amount", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-status-${item.id}`}>
+                          狀態
+                        </FieldLabel>
+                        <FieldSelect
+                          id={`invoices-edit-status-${item.id}`}
+                          value={editFormState.status}
+                          onChange={(event) =>
+                            updateEditFormField(
+                              "status",
+                              event.target.value as IncomeRecordStatus
+                            )
+                          }
+                        >
+                          {INCOME_RECORD_STATUS_VALUES.map((status) => (
+                            <option key={status} value={status}>
+                              {STATUS_LABELS[status]}
+                            </option>
+                          ))}
+                        </FieldSelect>
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-due-date-${item.id}`}>
+                          到期日
+                        </FieldLabel>
+                        <FieldInput
+                          id={`invoices-edit-due-date-${item.id}`}
+                          type="date"
+                          value={editFormState.due_date}
+                          onChange={(event) =>
+                            updateEditFormField("due_date", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-received-date-${item.id}`}>
+                          收款日
+                        </FieldLabel>
+                        <FieldInput
+                          id={`invoices-edit-received-date-${item.id}`}
+                          type="date"
+                          value={editFormState.received_date}
+                          onChange={(event) =>
+                            updateEditFormField("received_date", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-project-id-${item.id}`}>
+                          專案 ID（可留白）
+                        </FieldLabel>
+                        <FieldInput
+                          id={`invoices-edit-project-id-${item.id}`}
+                          value={editFormState.project_id}
+                          onChange={(event) =>
+                            updateEditFormField("project_id", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor={`invoices-edit-client-id-${item.id}`}>
+                          客戶 ID（可留白）
+                        </FieldLabel>
+                        <FieldInput
+                          id={`invoices-edit-client-id-${item.id}`}
+                          value={editFormState.client_id}
+                          onChange={(event) =>
+                            updateEditFormField("client_id", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field className="full-width">
+                        <FieldLabel htmlFor={`invoices-edit-notes-${item.id}`}>
+                          備註
+                        </FieldLabel>
+                        <FieldTextarea
+                          id={`invoices-edit-notes-${item.id}`}
+                          value={editFormState.notes}
+                          onChange={(event) =>
+                            updateEditFormField("notes", event.target.value)
+                          }
+                        />
+                      </Field>
+                      <EditActions>
+                        <GhostButton
+                          type="button"
+                          data-testid="invoices-cancel-edit-button"
+                          onClick={cancelEdit}
+                          disabled={isUpdating}
+                        >
+                          取消
+                        </GhostButton>
+                        <AddButton
+                          type="button"
+                          data-testid="invoices-save-edit-button"
+                          onClick={() => void handleUpdateIncomeRecord(item.id)}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "儲存中..." : "儲存變更"}
+                        </AddButton>
+                      </EditActions>
+                    </EditFormGrid>
+                  ) : null}
+                </Row>
+              );
+            })}
           </Rows>
         ) : null}
 
@@ -536,6 +820,29 @@ const AddButton = styled.button`
   }
 `;
 
+const GhostButton = styled.button`
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  color: ${({ theme }) => theme.textPrimary};
+  background: rgb(255 255 255 / 0.06);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+`;
+
+const DangerButton = styled(GhostButton)`
+  border-color: rgb(255 142 142 / 0.4);
+  background: rgb(255 142 142 / 0.1);
+  color: #ffb2b2;
+`;
+
 const InlineInfo = styled.p`
   margin-top: ${({ theme }) => theme.spacing.sm};
   color: ${({ theme }) => theme.textSecondary};
@@ -612,6 +919,31 @@ const NotesText = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.86rem;
   line-height: 1.6;
+`;
+
+const RowActions = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+`;
+
+const EditFormGrid = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: ${({ theme }) => theme.spacing.sm};
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+`;
+
+const EditActions = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
 const ReminderText = styled.p`
