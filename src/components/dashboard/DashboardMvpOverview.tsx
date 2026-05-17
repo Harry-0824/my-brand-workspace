@@ -26,18 +26,18 @@ function getSnapshotValue(
     return summary.totalProjects.toString();
   }
   if (index === 1) {
-    return summary.totalTasks.toString();
+    return summary.activeProjects.toString();
   }
   if (index === 2) {
-    return summary.totalClients.toString();
+    return summary.totalTasks.toString();
   }
   if (index === 3) {
-    return formatIncome(summary.totalIncomeAmount);
+    return summary.openTasks.toString();
   }
   if (index === 4) {
-    return formatIncome(summary.paidIncomeAmount);
+    return summary.totalClients.toString();
   }
-  return formatIncome(summary.pendingOrOverdueIncomeAmount);
+  return formatIncome(summary.totalIncomeAmount);
 }
 
 export function DashboardMvpOverview({
@@ -49,7 +49,7 @@ export function DashboardMvpOverview({
       <DashboardSectionHeader
         titleId="dashboard-mvp-overview-title"
         title="工作區快照"
-        description="以靜態 MVP 方式快速掌握目前工作區狀態。"
+        description="以 Supabase 真實資料快速掌握目前工作區狀態。"
         withDivider
       />
 
