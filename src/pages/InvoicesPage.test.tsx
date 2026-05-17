@@ -8,13 +8,19 @@ import type { IncomeRecordStatus } from "../lib/incomeRecords";
 
 const mockFetchIncomeRecordsForCurrentUser = vi.fn();
 const mockCreateIncomeRecordForCurrentUser = vi.fn();
+const mockUpdateIncomeRecordForCurrentUser = vi.fn();
+const mockDeleteIncomeRecordForCurrentUser = vi.fn();
 
 vi.mock("../lib/incomeRecords", () => ({
   INCOME_RECORD_STATUS_VALUES: ["pending", "paid", "overdue", "cancelled"],
   fetchIncomeRecordsForCurrentUser: (...args: unknown[]) =>
     mockFetchIncomeRecordsForCurrentUser(...args),
   createIncomeRecordForCurrentUser: (...args: unknown[]) =>
-    mockCreateIncomeRecordForCurrentUser(...args)
+    mockCreateIncomeRecordForCurrentUser(...args),
+  updateIncomeRecordForCurrentUser: (...args: unknown[]) =>
+    mockUpdateIncomeRecordForCurrentUser(...args),
+  deleteIncomeRecordForCurrentUser: (...args: unknown[]) =>
+    mockDeleteIncomeRecordForCurrentUser(...args)
 }));
 
 const baseRows = [
@@ -90,6 +96,34 @@ beforeEach(() => {
       created_at: "2026-05-18T08:00:00.000Z"
     })
   );
+  mockUpdateIncomeRecordForCurrentUser.mockImplementation(
+    async (
+      incomeRecordId: string,
+      input: {
+        title: string;
+        amount: string;
+        status: IncomeRecordStatus;
+        project_id?: string;
+        client_id?: string;
+        due_date?: string;
+        received_date?: string;
+        notes?: string;
+      }
+    ) => ({
+      id: incomeRecordId,
+      user_id: "user-1",
+      project_id: input.project_id?.trim() ? input.project_id : null,
+      client_id: input.client_id?.trim() ? input.client_id : null,
+      title: input.title,
+      amount: Number.parseFloat(input.amount),
+      status: input.status,
+      due_date: input.due_date?.trim() ? input.due_date : null,
+      received_date: input.received_date?.trim() ? input.received_date : null,
+      notes: input.notes?.trim() ? input.notes : null,
+      created_at: "2026-05-17T08:00:00.000Z"
+    })
+  );
+  mockDeleteIncomeRecordForCurrentUser.mockResolvedValue(true);
 });
 
 function renderInvoicesPage() {
@@ -219,5 +253,66 @@ describe("InvoicesPage income records read/create", () => {
     expect(screen.getAllByTestId("invoices-status-badge")).toHaveLength(3);
     expect(screen.getByTestId("invoices-result-count")).toHaveTextContent("3 / 3");
     expect(reset).toBeDisabled();
+  });
+
+  it("updates the selected income record only", async () => {
+    renderInvoicesPage();
+    await waitForRowsToLoad();
+
+    const editButtons = screen.getAllByTestId("invoices-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    setFieldValue("invoices-edit-title-ir-1", "網站設計尾款（已調整）");
+    setFieldValue("invoices-edit-amount-ir-1", "13000");
+    setFieldValue("invoices-edit-status-ir-1", "paid");
+    setFieldValue("invoices-edit-project-id-ir-1", "project-9");
+    setFieldValue("invoices-edit-client-id-ir-1", "client-9");
+    setFieldValue("invoices-edit-notes-ir-1", "已收款，待對帳");
+
+    fireEvent.click(screen.getByTestId("invoices-save-edit-button"));
+
+    await waitFor(() => {
+      expect(mockUpdateIncomeRecordForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockUpdateIncomeRecordForCurrentUser).toHaveBeenCalledWith(
+      "ir-1",
+      expect.objectContaining({
+        title: "網站設計尾款（已調整）",
+        amount: "13000",
+        status: "paid",
+        project_id: "project-9",
+        client_id: "client-9"
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("invoices-action-success")).toHaveTextContent(
+        "收款紀錄已更新。"
+      );
+    });
+    expect(screen.getByText("網站設計尾款（已調整）")).toBeInTheDocument();
+    expect(screen.getByText("品牌顧問月費")).toBeInTheDocument();
+  });
+
+  it("deletes the selected income record only", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderInvoicesPage();
+    await waitForRowsToLoad();
+
+    const deleteButtons = screen.getAllByTestId("invoices-delete-button");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(mockDeleteIncomeRecordForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockDeleteIncomeRecordForCurrentUser).toHaveBeenCalledWith("ir-1");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("invoices-result-count")).toHaveTextContent("2 / 2");
+    });
+    expect(screen.queryByText("網站設計尾款")).not.toBeInTheDocument();
+    expect(screen.getByText("品牌顧問月費")).toBeInTheDocument();
+
+    confirmSpy.mockRestore();
   });
 });

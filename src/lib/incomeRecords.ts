@@ -36,6 +36,17 @@ export type CreateIncomeRecordInput = {
   notes?: string;
 };
 
+export type UpdateIncomeRecordInput = {
+  title: string;
+  amount: string;
+  status: IncomeRecordStatus;
+  project_id?: string;
+  client_id?: string;
+  due_date?: string;
+  received_date?: string;
+  notes?: string;
+};
+
 function normalizeOptionalText(value?: string) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
@@ -141,4 +152,71 @@ export async function createIncomeRecordForCurrentUser(
   }
 
   return mapIncomeRecordRow(data as IncomeRecordRow);
+}
+
+export async function updateIncomeRecordForCurrentUser(
+  incomeRecordId: string,
+  input: UpdateIncomeRecordInput
+) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot update income records.");
+  }
+
+  const payload = {
+    title: input.title.trim(),
+    amount: normalizeAmount(input.amount),
+    status: input.status,
+    project_id: normalizeOptionalText(input.project_id),
+    client_id: normalizeOptionalText(input.client_id),
+    due_date: normalizeOptionalText(input.due_date),
+    received_date: normalizeOptionalText(input.received_date),
+    notes: normalizeOptionalText(input.notes)
+  };
+
+  const { data, error } = await supabase
+    .from("income_records")
+    .update(payload)
+    .eq("id", incomeRecordId)
+    .eq("user_id", userId)
+    .select(
+      "id, user_id, project_id, client_id, title, amount, status, due_date, received_date, notes, created_at"
+    )
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update income record: ${error.message}`);
+  }
+
+  return mapIncomeRecordRow(data as IncomeRecordRow);
+}
+
+export async function deleteIncomeRecordForCurrentUser(incomeRecordId: string) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot delete income records.");
+  }
+
+  const { data, error } = await supabase
+    .from("income_records")
+    .delete()
+    .eq("id", incomeRecordId)
+    .eq("user_id", userId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete income record: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Income record was not deleted. It may not exist or may not belong to the current user."
+    );
+  }
+
+  return true;
 }
