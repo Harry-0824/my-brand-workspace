@@ -1,7 +1,15 @@
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
+import type { AuthUser } from "../../lib/auth";
+import { AuthPanel } from "../auth/AuthPanel";
 
-export function AppHeader() {
+type AppHeaderProps = {
+  authUser: AuthUser | null;
+  isAuthChecking: boolean;
+  authError: string | null;
+};
+
+export function AppHeader({ authUser, isAuthChecking, authError }: AppHeaderProps) {
   return (
     <HeaderShell>
       <TitleGroup>
@@ -18,7 +26,11 @@ export function AppHeader() {
         <SettingsLink to="/settings" aria-label="設定">
           <GearIcon aria-hidden="true" />
         </SettingsLink>
-        <UserBadge aria-label="目前使用者 Harry">Harry</UserBadge>
+        <AuthPanel
+          user={authUser}
+          isChecking={isAuthChecking}
+          authError={authError}
+        />
       </HeaderActions>
     </HeaderShell>
   );
@@ -129,19 +141,6 @@ const NotificationIcon = styled.span`
     border-bottom-width: 3px;
     border-radius: 999px 999px 0.45rem 0.45rem;
   }
-`;
-
-const UserBadge = styled.span`
-  min-height: 2.75rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 ${({ theme }) => theme.spacing.md};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.92rem;
-  font-weight: 800;
 `;
 
 const SettingsLink = styled(NavLink)`
