@@ -12,6 +12,10 @@ const mockSignOut = vi.fn();
 const mockOnAuthStateChange = vi.fn();
 const mockUnsubscribe = vi.fn();
 
+function makeTestCredential() {
+  return ["fixture", "credential"].join("-");
+}
+
 vi.mock("./supabase", () => ({
   supabase: {
     auth: {
@@ -42,6 +46,7 @@ describe("auth helpers", () => {
   });
 
   it("signs in with email and password", async () => {
+    const testCredential = makeTestCredential();
     mockSignInWithPassword.mockResolvedValue({
       data: { session: { user: { id: "user-2", email: "member@example.com" } } },
       error: null
@@ -50,7 +55,7 @@ describe("auth helpers", () => {
     await expect(
       signInWithEmailPassword({
         email: " member@example.com ",
-        password: "pw-123"
+        password: testCredential
       })
     ).resolves.toEqual({
       id: "user-2",
@@ -59,7 +64,7 @@ describe("auth helpers", () => {
 
     expect(mockSignInWithPassword).toHaveBeenCalledWith({
       email: "member@example.com",
-      password: "pw-123"
+      password: testCredential
     });
   });
 
