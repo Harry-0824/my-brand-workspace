@@ -1,10 +1,7 @@
-﻿import styled from "styled-components";
-import {
-  PageDescription,
-  PageHeader,
-  PageMain,
-  PageTitle
-} from "../components/page/PageShell";
+import { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
+import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
+import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import {
   PageList,
   PageListCard,
@@ -14,37 +11,129 @@ import {
   PageMetricValue,
   PageNote
 } from "../components/page/PageContentPrimitives";
-import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
-import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import {
-  projectStatusOverview,
-  revenueSnapshot,
-  summaryMetrics,
-  taskPerformance
-} from "./data/reportsPageData";
+  PageDescription,
+  PageHeader,
+  PageMain,
+  PageTitle
+} from "../components/page/PageShell";
+import {
+  createZeroReportsOverview,
+  fetchReportsOverviewForCurrentUser
+} from "../lib/reportsOverview";
+
+function formatCurrency(amount: number) {
+  return `NT$${amount.toLocaleString("zh-TW", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  })}`;
+}
+
+function formatPercent(value: number) {
+  return `${Math.round(value)}%`;
+}
 
 export function ReportsPage() {
+  const [overview, setOverview] = useState(createZeroReportsOverview());
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadOverview() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const nextOverview = await fetchReportsOverviewForCurrentUser();
+        if (!active) {
+          return;
+        }
+        setOverview(nextOverview);
+      } catch (loadError) {
+        if (!active) {
+          return;
+        }
+        const message =
+          loadError instanceof Error
+            ? loadError.message
+            : "目前無法載入報表資料，請稍後再試。";
+        setError(message);
+        setOverview(createZeroReportsOverview());
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadOverview();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const taskCompletionRate = useMemo(() => {
+    if (overview.totalTasks === 0) {
+      return 0;
+    }
+    return (overview.doneTasks / overview.totalTasks) * 100;
+  }, [overview.doneTasks, overview.totalTasks]);
+
+  const summaryMetrics = [
+    { label: "累計收款金額", value: formatCurrency(overview.totalIncomeAmount) },
+    { label: "專案總數", value: String(overview.totalProjects) },
+    { label: "任務總數", value: String(overview.totalTasks) },
+    { label: "客戶總數", value: String(overview.totalClients) }
+  ];
+
+  const projectStatusOverview = [
+    { status: "進行中", count: overview.activeProjects, note: "目前持續執行中的專案。" },
+    { status: "暫停", count: overview.pausedProjects, note: "等待回饋或排程調整中的專案。" },
+    { status: "已完成", count: overview.completedProjects, note: "已交付完成的專案。" },
+    { status: "已封存", count: overview.archivedProjects, note: "已結案並封存的專案。" }
+  ];
+
+  const taskPerformance = [
+    { label: "待處理任務", value: String(overview.todoTasks + overview.inProgressTasks) },
+    { label: "已完成任務", value: String(overview.doneTasks) },
+    { label: "已取消任務", value: String(overview.cancelledTasks) },
+    { label: "完成率", value: formatPercent(taskCompletionRate) }
+  ];
+
+  const revenueSnapshot = [
+    { label: "已收款", value: formatCurrency(overview.paidIncomeAmount) },
+    { label: "待收款", value: formatCurrency(overview.pendingIncomeAmount) },
+    { label: "逾期收款", value: formatCurrency(overview.overdueIncomeAmount) },
+    { label: "已取消收款", value: formatCurrency(overview.cancelledIncomeAmount) }
+  ];
+
+  const renderValue = (value: string) => (isLoading ? "--" : value);
+
   return (
     <PageMain aria-labelledby="reports-page-title">
       <PageHeader>
         <PageTitle id="reports-page-title">報表</PageTitle>
         <PageDescription>
-          檢視專案、任務與收款狀態的靜態分析頁面殼層。
+          檢視專案、任務與收款狀態的即時總覽。
         </PageDescription>
+        {error ? <InlineError data-testid="reports-error-state">{error}</InlineError> : null}
       </PageHeader>
 
       <DashboardPanel aria-labelledby="reports-summary-title">
         <DashboardSectionHeader
           titleId="reports-summary-title"
           title="摘要指標"
-          description="以下為報表摘要的靜態示意數據。"
+          description="以下為目前帳號的即時報表摘要。"
           withDivider
         />
         <MetricGrid>
           {summaryMetrics.map((metric) => (
             <MetricCard key={metric.label}>
               <MetricLabel>{metric.label}</MetricLabel>
-              <MetricValue>{metric.value}</MetricValue>
+              <MetricValue>{renderValue(metric.value)}</MetricValue>
             </MetricCard>
           ))}
         </MetricGrid>
@@ -62,7 +151,7 @@ export function ReportsPage() {
             <ListRow key={item.status}>
               <RowHeader>
                 <StatusTitle>{item.status}</StatusTitle>
-                <StatusCount>{item.count}</StatusCount>
+                <StatusCount>{isLoading ? "--" : item.count}</StatusCount>
               </RowHeader>
               <RowNote>{item.note}</RowNote>
             </ListRow>
@@ -74,14 +163,14 @@ export function ReportsPage() {
         <DashboardSectionHeader
           titleId="reports-task-performance-title"
           title="任務表現"
-          description="顯示任務完成狀態的靜態示意摘要。"
+          description="顯示任務處理與完成狀態摘要。"
           withDivider
         />
         <TripletGrid>
           {taskPerformance.map((item) => (
             <TripletCard key={item.label}>
               <MetricLabel>{item.label}</MetricLabel>
-              <MetricValue>{item.value}</MetricValue>
+              <MetricValue>{renderValue(item.value)}</MetricValue>
             </TripletCard>
           ))}
         </TripletGrid>
@@ -91,14 +180,14 @@ export function ReportsPage() {
         <DashboardSectionHeader
           titleId="reports-revenue-title"
           title="收款快照"
-          description="收款狀態僅為靜態佔位，未接入實際計算。"
+          description="顯示目前收款狀態的即時統計。"
           withDivider
         />
         <TripletGrid>
           {revenueSnapshot.map((item) => (
             <TripletCard key={item.label}>
               <MetricLabel>{item.label}</MetricLabel>
-              <MetricValue>{item.value}</MetricValue>
+              <MetricValue>{renderValue(item.value)}</MetricValue>
             </TripletCard>
           ))}
         </TripletGrid>
@@ -108,11 +197,11 @@ export function ReportsPage() {
         <DashboardSectionHeader
           titleId="reports-insight-title"
           title="本週洞察"
-          description="每週回顧建議（靜態文案示意）。"
+          description="依目前報表數據提供優先關注方向。"
           withDivider
         />
         <InsightText>
-          建議優先處理待收款與逾期項目，同時集中追蹤等待回饋的專案，避免影響下週交付節奏。
+          優先追蹤待收款與逾期收款，並集中推進待處理任務，避免影響下週交付節奏。
         </InsightText>
       </DashboardPanel>
     </PageMain>
@@ -149,6 +238,13 @@ const RowNote = styled.p`
   margin-top: ${({ theme }) => theme.spacing.xs};
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.86rem;
+  line-height: 1.65;
+`;
+
+const InlineError = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #ffb4ad;
+  font-size: 0.92rem;
   line-height: 1.65;
 `;
 
