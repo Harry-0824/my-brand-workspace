@@ -156,4 +156,92 @@ Do not combine all stages into one Issue unless the Issue explicitly asks for it
 ```txt
 npm run test
 npm run build
+If npm run lint is configured, run it before opening a PR.
+If npm run lint is not configured, state that clearly in the PR description.
+For docs-only changes, run:
+git diff --check
+
+and state when build/test were not required.
+
+Security Rules
+Do not commit .env, .env.local, API keys, tokens, secrets, or credentials.
+Do not hard-code Supabase keys or backend secrets.
+Do not expose service role keys in frontend code.
+Do not include secrets in PR descriptions, comments, tests, or documentation.
+Use environment variables only when explicitly requested by a GitHub Issue.
+Keep secrets out of source code, commit history, and generated files.
+File Scope Rules
+
+Before finishing, check the changed files.
+
+The PR should not include:
+
+unrelated files
+unrelated formatting changes
+unrelated route changes
+unrelated dependency changes
+unrelated docs
+temporary files
+debug logs
+generated files that are not required by the Issue
+.env or secret files
+
+If a file was changed accidentally, revert it before opening the PR.
+
+Documentation Rules
+Do not create new Markdown files unless the Issue explicitly requests documentation.
+Do not create handoff, summary, planning, or temporary docs inside the repo unless requested.
+Keep repository documentation minimal and directly useful.
+Do not update external Obsidian or Notion content from this repository.
+PR Requirements
+
+Every PR description must include:
+
+## Summary
+
+-
+
+## Related Issue
+
+Closes #
+
+## Changed Files
+
+-
+
+## How to Test
+
+-
+
+## Risk
+
+-
+
+## Out of Scope
+
+-
+
+## Scope Check
+
+- Did this PR modify unrelated files?
+- Did this PR exceed the Issue scope?
+- Were any dependencies added or changed?
+- Were any secrets, `.env` files, API keys, or credentials touched?
+
+The PR must clearly state whether the Issue scope was exceeded.
+
+Suggested Branch Naming
+
+Use these branch prefixes:
+
+feature/*
+fix/*
+docs/*
+
+Examples:
+
+feature/tasks-read-only-data
+feature/projects-create-flow
+fix/sidebar-active-state
+docs/update-agents-rules
 ```
