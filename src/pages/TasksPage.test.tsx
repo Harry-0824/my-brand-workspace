@@ -8,6 +8,8 @@ import type { TaskRecord, TaskStatus, TaskPriority } from "../lib/tasks";
 
 const mockFetchTasksForCurrentUser = vi.fn();
 const mockCreateTaskForCurrentUser = vi.fn();
+const mockUpdateTaskForCurrentUser = vi.fn();
+const mockDeleteTaskForCurrentUser = vi.fn();
 
 vi.mock("../lib/tasks", () => ({
   TASK_STATUS_VALUES: ["todo", "in_progress", "done", "cancelled"],
@@ -15,7 +17,11 @@ vi.mock("../lib/tasks", () => ({
   fetchTasksForCurrentUser: (...args: unknown[]) =>
     mockFetchTasksForCurrentUser(...args),
   createTaskForCurrentUser: (...args: unknown[]) =>
-    mockCreateTaskForCurrentUser(...args)
+    mockCreateTaskForCurrentUser(...args),
+  updateTaskForCurrentUser: (...args: unknown[]) =>
+    mockUpdateTaskForCurrentUser(...args),
+  deleteTaskForCurrentUser: (...args: unknown[]) =>
+    mockDeleteTaskForCurrentUser(...args)
 }));
 
 const baseRows: TaskRecord[] = [
@@ -76,6 +82,28 @@ beforeEach(() => {
       created_at: "2026-05-14T10:00:00.000Z"
     })
   );
+  mockUpdateTaskForCurrentUser.mockImplementation(
+    async (
+      taskId: string,
+      input: {
+        title: string;
+        status: TaskStatus;
+        priority?: TaskPriority | "";
+        project_id?: string;
+        due_date?: string;
+      }
+    ) => ({
+      id: taskId,
+      user_id: "user-1",
+      project_id: input.project_id?.trim() ? input.project_id : null,
+      title: input.title,
+      status: input.status,
+      priority: input.priority ? (input.priority as TaskPriority) : null,
+      due_date: input.due_date?.trim() ? input.due_date : null,
+      created_at: "2026-05-14T09:00:00.000Z"
+    })
+  );
+  mockDeleteTaskForCurrentUser.mockResolvedValue(true);
 });
 
 function renderTasksPage() {
@@ -195,5 +223,65 @@ describe("TasksPage Supabase integration behaviors", () => {
     });
     expect(screen.getByTestId("tasks-result-count")).toHaveTextContent("4 / 4");
     expect(screen.getAllByTestId("tasks-status-badge")).toHaveLength(4);
+  });
+
+  it("updates the selected task only", async () => {
+    renderTasksPage();
+    await waitForRowsToLoad();
+
+    const editButtons = screen.getAllByTestId("tasks-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    setFieldValue("tasks-edit-title-t-1", "Prepare proposal deck v2");
+    setFieldValue("tasks-edit-status-t-1", "done");
+    setFieldValue("tasks-edit-priority-t-1", "urgent");
+    setFieldValue("tasks-edit-due-date-t-1", "2026-05-25");
+    setFieldValue("tasks-edit-project-id-t-1", "project-9");
+
+    fireEvent.click(screen.getByTestId("tasks-save-edit-button"));
+
+    await waitFor(() => {
+      expect(mockUpdateTaskForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockUpdateTaskForCurrentUser).toHaveBeenCalledWith(
+      "t-1",
+      expect.objectContaining({
+        title: "Prepare proposal deck v2",
+        status: "done",
+        priority: "urgent",
+        due_date: "2026-05-25",
+        project_id: "project-9"
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("tasks-action-success")).toHaveTextContent(
+        "任務已更新。"
+      );
+    });
+    expect(screen.getByText("Prepare proposal deck v2")).toBeInTheDocument();
+    expect(screen.getByText("Client follow-up call")).toBeInTheDocument();
+  });
+
+  it("deletes the selected task only", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderTasksPage();
+    await waitForRowsToLoad();
+
+    const deleteButtons = screen.getAllByTestId("tasks-delete-button");
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(mockDeleteTaskForCurrentUser).toHaveBeenCalledTimes(1);
+    });
+    expect(mockDeleteTaskForCurrentUser).toHaveBeenCalledWith("t-1");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("tasks-result-count")).toHaveTextContent("2 / 2");
+    });
+    expect(screen.queryByText("Prepare proposal deck")).not.toBeInTheDocument();
+    expect(screen.getByText("Client follow-up call")).toBeInTheDocument();
+
+    confirmSpy.mockRestore();
   });
 });

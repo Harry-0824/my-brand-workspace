@@ -29,6 +29,14 @@ export type CreateTaskInput = {
   due_date?: string;
 };
 
+export type UpdateTaskInput = {
+  title: string;
+  status: TaskStatus;
+  priority?: TaskPriority | "";
+  project_id?: string;
+  due_date?: string;
+};
+
 function normalizeOptionalText(value?: string) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
@@ -99,4 +107,67 @@ export async function createTaskForCurrentUser(input: CreateTaskInput) {
   }
 
   return data as TaskRecord;
+}
+
+export async function updateTaskForCurrentUser(
+  taskId: string,
+  input: UpdateTaskInput
+) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot update tasks.");
+  }
+
+  const normalizedPriority = input.priority?.trim();
+  const payload = {
+    title: input.title.trim(),
+    status: input.status,
+    priority: normalizedPriority ? normalizedPriority : null,
+    project_id: normalizeOptionalText(input.project_id),
+    due_date: normalizeOptionalText(input.due_date)
+  };
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update(payload)
+    .eq("id", taskId)
+    .eq("user_id", userId)
+    .select("id, user_id, project_id, title, status, priority, due_date, created_at")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update task: ${error.message}`);
+  }
+
+  return data as TaskRecord;
+}
+
+export async function deleteTaskForCurrentUser(taskId: string) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error("User is not authenticated and cannot delete tasks.");
+  }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", taskId)
+    .eq("user_id", userId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to delete task: ${error.message}`);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Task was not deleted. It may not exist or may not belong to the current user."
+    );
+  }
+
+  return true;
 }
