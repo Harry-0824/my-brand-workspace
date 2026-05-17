@@ -38,12 +38,12 @@ export const dashboardQuickActions = [
 ] as const;
 
 export const dashboardWorkspaceSnapshot = [
-  { label: "進行中專案數", value: "4", note: "與專案頁靜態清單一致" },
-  { label: "目前任務數", value: "6", note: "與任務頁靜態清單一致" },
-  { label: "合作中客戶數", value: "4", note: "與客戶頁靜態清單一致" },
-  { label: "收款項目數", value: "4", note: "與收款頁靜態清單一致" },
-  { label: "本週時程項目", value: "5", note: "依本週排程區塊統計" },
-  { label: "近期檔案數", value: "17", note: "依檔案頁靜態資料顯示" }
+  { label: "專案總數", value: "0", note: "來自 projects 真實資料" },
+  { label: "進行中專案數", value: "0", note: "依 projects active 狀態統計" },
+  { label: "任務總數", value: "0", note: "來自 tasks 真實資料" },
+  { label: "待處理任務數", value: "0", note: "依 todo / in_progress 狀態統計" },
+  { label: "客戶總數", value: "0", note: "來自 clients 真實資料" },
+  { label: "累計收款金額", value: "NT$0", note: "來自 income_records 金額加總" }
 ] as const;
 
 export const dashboardWeekFocus = [
