@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import type { DashboardSummary } from "../../lib/dashboardSummary";
 
 const overviewCards = [
   {
@@ -23,13 +24,42 @@ const overviewCards = [
   }
 ] as const;
 
-export function OverviewCards() {
+type OverviewCardsProps = {
+  summary: DashboardSummary;
+  isSummaryLoading: boolean;
+};
+
+function getSummaryCardValue(
+  index: number,
+  summary: DashboardSummary,
+  isSummaryLoading: boolean
+) {
+  if (isSummaryLoading) {
+    return "--";
+  }
+
+  if (index === 0) {
+    return summary.totalProjects.toString();
+  }
+
+  if (index === 1) {
+    return summary.openTasks.toString();
+  }
+
+  if (index === 2) {
+    return summary.totalClients.toString();
+  }
+
+  return summary.totalTasks.toString();
+}
+
+export function OverviewCards({ summary, isSummaryLoading }: OverviewCardsProps) {
   return (
     <CardsGrid aria-label="儀表板概覽卡片">
-      {overviewCards.map((card) => (
+      {overviewCards.map((card, index) => (
         <OverviewCard key={card.title}>
           <CardTitle>{card.title}</CardTitle>
-          <CardValue>{card.value}</CardValue>
+          <CardValue>{getSummaryCardValue(index, summary, isSummaryLoading)}</CardValue>
           <CardDescription>{card.description}</CardDescription>
         </OverviewCard>
       ))}

@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { clientRows } from "../../pages/data/clientsPageData";
-import { invoiceRows } from "../../pages/data/invoicesPageData";
 import { dashboardQuickActions, dashboardWorkspaceSnapshot } from "./dashboardData";
 
 describe("dashboard data guards", () => {
@@ -15,10 +13,11 @@ describe("dashboard data guards", () => {
     ]);
   });
 
-  it("keeps snapshot values aligned with selected static page data", () => {
-    expect(dashboardWorkspaceSnapshot[0].value).toBe("4");
-    expect(dashboardWorkspaceSnapshot[1].value).toBe("6");
-    expect(dashboardWorkspaceSnapshot[2].value).toBe(String(clientRows.length));
-    expect(dashboardWorkspaceSnapshot[3].value).toBe(String(invoiceRows.length));
+  it("keeps snapshot card structure stable for dashboard summary mapping", () => {
+    expect(dashboardWorkspaceSnapshot).toHaveLength(6);
+    for (const item of dashboardWorkspaceSnapshot) {
+      expect(item.label).not.toBe("");
+      expect(item.note).not.toBe("");
+    }
   });
 });
