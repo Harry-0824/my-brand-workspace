@@ -1,9 +1,49 @@
 import styled from "styled-components";
+import type { DashboardSummary } from "../../lib/dashboardSummary";
 import { dashboardWeekFocus, dashboardWorkspaceSnapshot } from "./dashboardData";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 
-export function DashboardMvpOverview() {
+type DashboardMvpOverviewProps = {
+  summary: DashboardSummary;
+  isSummaryLoading: boolean;
+};
+
+function formatIncome(amount: number) {
+  return `NT$${amount.toLocaleString("zh-TW", { maximumFractionDigits: 0 })}`;
+}
+
+function getSnapshotValue(
+  index: number,
+  summary: DashboardSummary,
+  isSummaryLoading: boolean
+) {
+  if (isSummaryLoading) {
+    return "--";
+  }
+
+  if (index === 0) {
+    return summary.totalProjects.toString();
+  }
+  if (index === 1) {
+    return summary.totalTasks.toString();
+  }
+  if (index === 2) {
+    return summary.totalClients.toString();
+  }
+  if (index === 3) {
+    return formatIncome(summary.totalIncomeAmount);
+  }
+  if (index === 4) {
+    return formatIncome(summary.paidIncomeAmount);
+  }
+  return formatIncome(summary.pendingOrOverdueIncomeAmount);
+}
+
+export function DashboardMvpOverview({
+  summary,
+  isSummaryLoading
+}: DashboardMvpOverviewProps) {
   return (
     <DashboardPanel aria-labelledby="dashboard-mvp-overview-title">
       <DashboardSectionHeader
@@ -14,10 +54,10 @@ export function DashboardMvpOverview() {
       />
 
       <SnapshotGrid>
-        {dashboardWorkspaceSnapshot.map((item) => (
+        {dashboardWorkspaceSnapshot.map((item, index) => (
           <SnapshotCard key={item.label}>
             <SnapshotLabel>{item.label}</SnapshotLabel>
-            <SnapshotValue>{item.value}</SnapshotValue>
+            <SnapshotValue>{getSnapshotValue(index, summary, isSummaryLoading)}</SnapshotValue>
             <SnapshotNote>{item.note}</SnapshotNote>
           </SnapshotCard>
         ))}

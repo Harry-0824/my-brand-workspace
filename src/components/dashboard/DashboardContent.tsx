@@ -1,4 +1,9 @@
+import { useEffect, useState } from "react";
 import styled from "styled-components";
+import {
+  createZeroDashboardSummary,
+  fetchDashboardSummaryForCurrentUser
+} from "../../lib/dashboardSummary";
 import { ActiveProjects } from "./ActiveProjects";
 import { ClientSummary } from "./ClientSummary";
 import { CompactKanbanPreview } from "./CompactKanbanPreview";
@@ -13,16 +18,60 @@ import { TaskDetailPanelPreview } from "./TaskDetailPanelPreview";
 import { UpcomingDeadlines } from "./UpcomingDeadlines";
 
 export function DashboardContent() {
+  const [summary, setSummary] = useState(createZeroDashboardSummary());
+  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSummary() {
+      setIsSummaryLoading(true);
+      setSummaryError(null);
+
+      try {
+        const nextSummary = await fetchDashboardSummaryForCurrentUser();
+        if (!active) {
+          return;
+        }
+        setSummary(nextSummary);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : "目前無法載入儀表板摘要資料，請稍後再試。";
+        setSummaryError(message);
+        setSummary(createZeroDashboardSummary());
+      } finally {
+        if (active) {
+          setIsSummaryLoading(false);
+        }
+      }
+    }
+
+    void loadSummary();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <MainContent aria-labelledby="workspace-title">
       <DashboardIntro>
         <WorkspaceTitle id="workspace-title">My Brand Workspace</WorkspaceTitle>
         <WorkspaceSubtitle>單人接案任務管理工作區</WorkspaceSubtitle>
         <WorkspaceStatus>今天先從專案狀態與待辦摘要開始。</WorkspaceStatus>
+        {summaryError ? (
+          <SummaryError data-testid="dashboard-summary-error">{summaryError}</SummaryError>
+        ) : null}
       </DashboardIntro>
 
-      <DashboardMvpOverview />
-      <OverviewCards />
+      <DashboardMvpOverview summary={summary} isSummaryLoading={isSummaryLoading} />
+      <OverviewCards summary={summary} isSummaryLoading={isSummaryLoading} />
       <QuickActions />
       <FocusPlan />
 
@@ -75,6 +124,13 @@ const WorkspaceStatus = styled.p`
   margin-top: ${({ theme }) => theme.spacing.sm};
   color: ${({ theme }) => theme.textSecondary};
   font-size: 1rem;
+`;
+
+const SummaryError = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  color: #ffb4ad;
+  font-size: 0.92rem;
+  line-height: 1.65;
 `;
 
 const PrimaryGrid = styled.section`
