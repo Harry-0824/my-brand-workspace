@@ -5,9 +5,14 @@ export type AuthUser = {
   email: string | null;
 };
 
-export type SignInWithEmailPasswordInput = {
+export type EmailPasswordAuthInput = {
   email: string;
   password: string;
+};
+
+export type SignUpResult = {
+  user: AuthUser | null;
+  needsEmailConfirmation: boolean;
 };
 
 function mapSessionUser(session: Session | null): AuthUser | null {
@@ -15,6 +20,17 @@ function mapSessionUser(session: Session | null): AuthUser | null {
   if (!user) {
     return null;
   }
+  return {
+    id: user.id,
+    email: user.email ?? null
+  };
+}
+
+function mapRawUser(user: { id: string; email?: string | null } | null | undefined): AuthUser | null {
+  if (!user) {
+    return null;
+  }
+
   return {
     id: user.id,
     email: user.email ?? null
@@ -32,7 +48,7 @@ export async function getAuthSessionUser() {
   return mapSessionUser(data.session);
 }
 
-export async function signInWithEmailPassword(input: SignInWithEmailPasswordInput) {
+export async function signInWithEmailPassword(input: EmailPasswordAuthInput) {
   const { supabase } = await import("./supabase");
   const { data, error } = await supabase.auth.signInWithPassword({
     email: input.email.trim(),
@@ -44,6 +60,23 @@ export async function signInWithEmailPassword(input: SignInWithEmailPasswordInpu
   }
 
   return mapSessionUser(data.session);
+}
+
+export async function signUpWithEmailPassword(input: EmailPasswordAuthInput): Promise<SignUpResult> {
+  const { supabase } = await import("./supabase");
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email.trim(),
+    password: input.password
+  });
+
+  if (error) {
+    throw new Error(`Failed to sign up: ${error.message}`);
+  }
+
+  return {
+    user: mapRawUser(data.user),
+    needsEmailConfirmation: !data.session
+  };
 }
 
 export async function signOutCurrentUser() {
