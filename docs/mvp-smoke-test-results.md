@@ -21,7 +21,7 @@
 | Auth flows (signup/login/logout/session/data visibility) | blocked | Manual browser flow was not executed in this Issue run. To avoid false claims, not marked pass. |
 | Core CRUD flows (Projects/Clients/Tasks/Income Records) | blocked | Manual authenticated CRUD walkthrough was not executed in this Issue run. |
 | Real data surfaces (Dashboard/Reports) | blocked | Manual post-CRUD data reflection verification was not executed in this Issue run. |
-| Environment readiness | fail | Local runtime env vars for this session were not present (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). |
+| Environment readiness | pass | `.env.local` exists and is Git-ignored; required Vite env names are present via `.env.local` loading (no values exposed). |
 | Build verification (`npm.cmd run build`) | pass | Passed after elevated rerun. |
 | Test verification (`npm.cmd run test`) | pass | Passed after elevated rerun (`13 files`, `88 tests`). |
 | Secret safety / committed env file check | pass | No forbidden `.env*` tracked files were found; only `.env.example` is tracked. |
@@ -42,21 +42,26 @@
 
 - Local file presence check:
   - `.env`: missing
-  - `.env.local`: missing
+  - `.env.local`: exists
   - `.env.development`: missing
   - `.env.production`: missing
   - `.env.example`: exists
 
-- Variable name presence check:
+- Git ignore and variable name presence check:
+  - `.env.local` is ignored by Git (`git check-ignore -v .env.local` -> `.gitignore` rule matched)
   - `.env.example` includes `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+  - `.env.local` includes `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (names only checked)
   - Current process environment variables:
     - `VITE_SUPABASE_URL`: not present
     - `VITE_SUPABASE_ANON_KEY`: not present
+  - Vite `loadEnv(...)` check:
+    - `VITE_SUPABASE_URL`: present
+    - `VITE_SUPABASE_ANON_KEY`: present
 
 ### 3. Secret / tracked env file safety
 
 - Forbidden tracked files check result: `NO_FORBIDDEN_ENV_FILES_TRACKED`
-- No secret values were recorded in this document.
+- No secret values were recorded in this document or command output.
 
 ## Pass / Fail / Blocked Details by Checklist Area
 
@@ -65,10 +70,11 @@
 - Build command can pass in this environment after elevated rerun.
 - Test command can pass in this environment after elevated rerun.
 - Repository did not track forbidden `.env` runtime files in this check.
+- Environment readiness checks passed for local file presence + git ignore + required Vite env-name availability.
 
 ### Fail
 
-- Environment readiness (local runtime env vars present) did not pass in this run context.
+- None in this run.
 
 ### Blocked
 
@@ -81,10 +87,7 @@ Blocker reason:
 
 ## Follow-up Candidates (Do Not Fix in This Issue)
 
-1. Set up local runtime env variables for manual smoke testing context:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-2. Run a dedicated manual smoke test session (interactive) using this checklist and update statuses from `blocked` to pass/fail with concrete evidence.
+1. Run a dedicated manual smoke test session (interactive) using this checklist and update statuses from `blocked` to pass/fail with concrete evidence.
 
 ## Out-of-Scope Confirmation
 
