@@ -220,83 +220,107 @@ Run the following before opening a PR when practical:
 ```txt
 npm run test
 npm run build
+```
 
-If npm run lint is configured, run it before opening a PR.
+If `npm run lint` is configured, run it before opening a PR.
 
-If npm run lint is not configured, state that clearly in the PR description.
+If `npm run lint` is not configured, state that clearly in the PR description.
 
 For docs-only changes, run:
 
+```txt
 git diff --check
+```
 
 Then state when build/test were not required.
 
 If a command cannot be run, report:
 
-command executed
-result
-reason it could not complete
-whether the failure is related to the current Issue
+- command executed
+- result
+- reason it could not complete
+- whether the failure is related to the current Issue
 
 Do not change tests only to make them pass unless the Issue requires updating behavior.
 
-Security Rules
-Do not commit .env, .env.local, API keys, tokens, secrets, or credentials.
-Do not hard-code Supabase keys or backend secrets.
-Do not expose service role keys in frontend code.
-Do not include secrets in PR descriptions, comments, tests, or documentation.
-Use environment variables only when explicitly requested by a GitHub Issue.
-Keep secrets out of source code, commit history, and generated files.
-Deployment Rules
-Deployment target: Netlify.
-Do not change Netlify settings unless requested.
-Do not add deployment secrets.
-Do not commit .netlify/.
-If build fails because of environment variables, report the missing variable name only.
-Do not invent placeholder secrets.
-Do not modify deployment configuration unless the Issue is specifically about deployment.
-File Scope Rules
+---
+
+## Security Rules
+
+- Do not commit `.env`, `.env.local`, API keys, tokens, secrets, or credentials.
+- Do not hard-code Supabase keys or backend secrets.
+- Do not expose service role keys in frontend code.
+- Do not include secrets in PR descriptions, comments, tests, or documentation.
+- Use environment variables only when explicitly requested by a GitHub Issue.
+- Keep secrets out of source code, commit history, and generated files.
+
+---
+
+## Deployment Rules
+
+- Deployment target: Netlify.
+- Do not change Netlify settings unless requested.
+- Do not add deployment secrets.
+- Do not commit `.netlify/`.
+- If build fails because of environment variables, report the missing variable name only.
+- Do not invent placeholder secrets.
+- Do not modify deployment configuration unless the Issue is specifically about deployment.
+
+---
+
+## File Scope Rules
 
 Before finishing, check the changed files.
 
 The PR should not include:
 
-unrelated files
-unrelated formatting changes
-unrelated route changes
-unrelated dependency changes
-unrelated docs
-temporary files
-debug logs
-generated files that are not required by the Issue
-.env or secret files
+- unrelated files
+- unrelated formatting changes
+- unrelated route changes
+- unrelated dependency changes
+- unrelated docs
+- temporary files
+- debug logs
+- generated files that are not required by the Issue
+- `.env` or secret files
 
 If a file was changed accidentally, revert it before opening the PR.
 
-Documentation Rules
-Do not create new Markdown files unless the Issue explicitly requests documentation.
-Do not create handoff, summary, planning, or temporary docs inside the repo unless requested.
-Keep repository documentation minimal and directly useful.
-Do not update external Obsidian or Notion content from this repository.
-Do not create WORKFLOW.md, TODO.md, PROJECT_BRIEF.md, ARCHITECTURE.md, NOTES.md, AI_GUIDE.md, or similar files unless specifically requested.
-Git Rules
-Main branch: main
-Feature branches: feature/*
-Fix branches: fix/*
-Docs branches: docs/*
+---
 
-Do not commit directly to main unless explicitly instructed.
+## Documentation Rules
+
+- Do not create new Markdown files unless the Issue explicitly requests documentation.
+- Do not create handoff, summary, planning, or temporary docs inside the repo unless requested.
+- Keep repository documentation minimal and directly useful.
+- Do not update external Obsidian or Notion content from this repository.
+- Do not create `WORKFLOW.md`, `TODO.md`, `PROJECT_BRIEF.md`, `ARCHITECTURE.md`, `NOTES.md`, `AI_GUIDE.md`, or similar files unless specifically requested.
+
+---
+
+## Git Rules
+
+- Main branch: `main`
+- Feature branches: `feature/*`
+- Fix branches: `fix/*`
+- Docs branches: `docs/*`
+
+Do not commit directly to `main` unless explicitly instructed.
 
 Suggested branch examples:
 
-feature/tasks-read-only-data
-feature/projects-create-flow
-fix/sidebar-active-state
-docs/update-agents-rules
-Pull Request Requirements
+- `feature/tasks-read-only-data`
+- `feature/projects-create-flow`
+- `fix/sidebar-active-state`
+- `docs/update-agents-rules`
+
+---
+
+## Pull Request Requirements
 
 Every PR description must include:
 
+```md
 ## Summary
 
 -
@@ -327,104 +351,118 @@ Closes #
 - Did this PR exceed the Issue scope?
 - Were any dependencies added or changed?
 - Were any secrets, `.env` files, API keys, or credentials touched?
+```
 
 The PR must clearly state whether the Issue scope was exceeded.
 
 PR summary should include:
 
-What changed
-Why it changed
-Files changed
-Verification commands and results
-Any known limitations
+- What changed
+- Why it changed
+- Files changed
+- Verification commands and results
+- Any known limitations
 
 PR must clearly mention if:
 
-Some verification could not be run
-The implementation intentionally skipped out-of-scope work
-Follow-up Issues are needed
-Review and Merge Rules
+- Some verification could not be run
+- The implementation intentionally skipped out-of-scope work
+- Follow-up Issues are needed
+
+---
+
+## Review and Merge Rules
 
 For review and merge tasks:
 
-Do not modify files.
-Check PR status, changed files, and mergeability.
-Confirm the PR scope matches the Issue.
-Do not merge draft PRs.
-Merge only when the user explicitly asks.
-Report merge commit after merge.
-If there is a merge conflict, failed check, unexpected file change, or uncertainty about whether the PR is safe to merge, stop and report the issue.
-PR Merge Cleanup Rules
+- Do not modify files.
+- Check PR status, changed files, and mergeability.
+- Confirm the PR scope matches the Issue.
+- Do not merge draft PRs.
+- Merge only when the user explicitly asks.
+- Report merge commit after merge.
+- If there is a merge conflict, failed check, unexpected file change, or uncertainty about whether the PR is safe to merge, stop and report the issue.
 
-After a PR is successfully merged, delete the PR head branch if it is a temporary feature/*, fix/*, or docs/* branch.
+---
+
+## PR Merge Cleanup Rules
+
+After a PR is successfully merged, delete the PR head branch if it is a temporary `feature/*`, `fix/*`, or `docs/*` branch.
 
 Only delete the branch after confirming:
 
-the PR was merged successfully
-the branch is the PR head branch
-the branch belongs to the same repository, not a fork
-the branch name matches feature/*, fix/*, or docs/*
+- the PR was merged successfully
+- the branch is the PR head branch
+- the branch belongs to the same repository, not a fork
+- the branch name matches `feature/*`, `fix/*`, or `docs/*`
 
 Do not delete:
 
-main
-master
-develop
-release/*
-production/*
-any protected branch
-any branch that does not clearly belong to the merged PR
+- `main`
+- `master`
+- `develop`
+- `release/*`
+- `production/*`
+- any protected branch
+- any branch that does not clearly belong to the merged PR
 
 Do not force-delete branches.
 
 Delete both when safe:
 
-the remote PR branch
-the local PR branch
+- the remote PR branch
+- the local PR branch
 
 Recommended commands:
 
+```bash
 git checkout main
 git pull origin main
 git branch -d <branch-name>
 git push origin --delete <branch-name>
+```
 
-If local branch deletion fails, do not use git branch -D unless the user explicitly approves.
+If local branch deletion fails, do not use `git branch -D` unless the user explicitly approves.
 
 If branch deletion is not available in the current tool/environment, report:
 
-branch name
-whether remote branch still exists
-whether local branch still exists
-exact manual cleanup commands
+- branch name
+- whether remote branch still exists
+- whether local branch still exists
+- exact manual cleanup commands
 
 If branch deletion fails, report the failure instead of attempting risky cleanup.
 
-Out of Scope by Default
+---
+
+## Out of Scope by Default
 
 Unless explicitly requested, do not:
 
-Refactor the whole app
-Rebuild routing
-Redesign the layout system
-Add a new state management library
-Add a UI framework
-Add authentication
-Add payment features
-Add database schema or RLS changes
-Modify migrations
-Modify deployment settings
-Modify Obsidian notes
-Modify Notion records
-Create unrelated documentation
-Clean up unrelated branches
-Change package manager
-Add new infrastructure
-Notes for Codex
-Think before coding.
-Prefer boring, maintainable solutions.
-Make minimal, reviewable changes.
-Respect the GitHub Issue scope.
-If the Issue is ambiguous, choose the smallest interpretation and document the assumption.
-If the requested work is too broad, propose a smaller Issue split instead of implementing everything.
-```
+- Refactor the whole app
+- Rebuild routing
+- Redesign the layout system
+- Add a new state management library
+- Add a UI framework
+- Add authentication
+- Add payment features
+- Add database schema or RLS changes
+- Modify migrations
+- Modify deployment settings
+- Modify Obsidian notes
+- Modify Notion records
+- Create unrelated documentation
+- Clean up unrelated branches
+- Change package manager
+- Add new infrastructure
+
+---
+
+## Notes for Codex
+
+- Think before coding.
+- Prefer boring, maintainable solutions.
+- Make minimal, reviewable changes.
+- Respect the GitHub Issue scope.
+- If the Issue is ambiguous, choose the smallest interpretation and document the assumption.
+- If the requested work is too broad, propose a smaller Issue split instead of implementing everything.
