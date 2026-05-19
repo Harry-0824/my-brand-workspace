@@ -34,6 +34,7 @@ import {
   fetchProjectsForCurrentUser,
   updateProjectForCurrentUser
 } from "../lib/projects";
+import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
   active: "進行中",
@@ -113,7 +114,7 @@ export function ProjectsPage() {
           error instanceof Error
             ? error.message
             : "目前無法讀取專案資料，請稍後再試。";
-        setFetchError(message);
+        setFetchError(getUserFacingErrorMessage(error, message));
       } finally {
         if (active) {
           setIsLoading(false);
@@ -245,7 +246,7 @@ export function ProjectsPage() {
         error instanceof Error
           ? error.message
           : "目前無法建立專案，請稍後再試。";
-      setCreateError(message);
+      setCreateError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsCreating(false);
     }
@@ -275,7 +276,7 @@ export function ProjectsPage() {
         error instanceof Error
           ? error.message
           : "目前無法更新專案，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsUpdatingProjectId(null);
     }
@@ -304,7 +305,7 @@ export function ProjectsPage() {
         error instanceof Error
           ? error.message
           : "目前無法刪除專案，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsDeletingProjectId(null);
     }

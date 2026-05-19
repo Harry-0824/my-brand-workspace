@@ -6,6 +6,7 @@ import {
   getAuthSessionUser,
   subscribeToAuthSessionUserChanges
 } from "../lib/auth";
+import { getUserFacingErrorMessage } from "../lib/errorMessages";
 import { AppHeader } from "../components/navigation/AppHeader";
 import { Sidebar } from "../components/navigation/Sidebar";
 
@@ -44,7 +45,7 @@ export function AppLayout() {
           error instanceof Error
             ? error.message
             : "目前無法讀取登入狀態，請稍後再試。";
-        setAuthError(message);
+        setAuthError(getUserFacingErrorMessage(error, message));
         setAuthUser(null);
       } finally {
         if (active) {

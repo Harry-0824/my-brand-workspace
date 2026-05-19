@@ -4,6 +4,7 @@ import {
   createZeroDashboardSummary,
   fetchDashboardSummaryForCurrentUser
 } from "../../lib/dashboardSummary";
+import { getUserFacingErrorMessage } from "../../lib/errorMessages";
 import { ActiveProjects } from "./ActiveProjects";
 import { ClientSummary } from "./ClientSummary";
 import { CompactKanbanPreview } from "./CompactKanbanPreview";
@@ -43,7 +44,7 @@ export function DashboardContent() {
           error instanceof Error
             ? error.message
             : "目前無法載入儀表板摘要資料，請稍後再試。";
-        setSummaryError(message);
+        setSummaryError(getUserFacingErrorMessage(error, message));
         setSummary(createZeroDashboardSummary());
       } finally {
         if (active) {

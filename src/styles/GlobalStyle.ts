@@ -52,6 +52,15 @@ export const GlobalStyle = createGlobalStyle`
     outline: none;
   }
 
+  select {
+    color-scheme: dark;
+  }
+
+  select option {
+    background: ${({ theme }) => theme.surface};
+    color: ${({ theme }) => theme.textPrimary};
+  }
+
   a {
     color: inherit;
     text-decoration: none;

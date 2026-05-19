@@ -38,6 +38,9 @@ export function HelpPage() {
             </ListRow>
           ))}
         </List>
+        <StaticNote>
+          此區塊為靜態檢查清單，不會自動跳轉；請從側邊欄開啟對應頁面。
+        </StaticNote>
       </DashboardPanel>
 
       <DashboardPanel aria-labelledby="help-workflow-title">
@@ -114,6 +117,13 @@ const RowMeta = styled.p`
   margin-top: ${({ theme }) => theme.spacing.xs};
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.84rem;
+`;
+
+const StaticNote = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.84rem;
+  line-height: 1.65;
 `;
 
 const CardGrid = styled.div`

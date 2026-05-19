@@ -37,6 +37,7 @@ import {
   fetchTasksForCurrentUser,
   updateTaskForCurrentUser
 } from "../lib/tasks";
+import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
   todo: "待處理",
@@ -122,7 +123,7 @@ export function TasksPage() {
           error instanceof Error
             ? error.message
             : "目前無法讀取任務資料，請稍後再試。";
-        setFetchError(message);
+        setFetchError(getUserFacingErrorMessage(error, message));
       } finally {
         if (active) {
           setIsLoading(false);
@@ -256,7 +257,7 @@ export function TasksPage() {
         error instanceof Error
           ? error.message
           : "目前無法建立任務，請稍後再試。";
-      setCreateError(message);
+      setCreateError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsCreating(false);
     }
@@ -286,7 +287,7 @@ export function TasksPage() {
         error instanceof Error
           ? error.message
           : "目前無法更新任務，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsUpdatingTaskId(null);
     }
@@ -315,7 +316,7 @@ export function TasksPage() {
         error instanceof Error
           ? error.message
           : "目前無法刪除任務，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsDeletingTaskId(null);
     }

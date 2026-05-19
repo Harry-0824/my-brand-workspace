@@ -215,6 +215,16 @@ describe("Simplified navigation structure", () => {
 
     renderApp(["/"]);
 
+    expect(screen.queryByRole("button", { name: "新增" })).toBeNull();
+    expect(screen.getByText("頁面內新增")).toHaveAttribute(
+      "title",
+      "新增請使用各頁面的新增表單",
+    );
+    expect(screen.getByRole("img", { name: "通知功能尚未啟用" })).toHaveAttribute(
+      "title",
+      "通知功能尚未啟用",
+    );
+
     const settingsLink = screen.getByRole("link", { name: "設定" });
 
     expect(settingsLink).toBeInTheDocument();
@@ -233,5 +243,13 @@ describe("Simplified navigation structure", () => {
     renderApp([path]);
 
     expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+  });
+
+  it("clarifies that help quick-start items are static", () => {
+    renderApp(["/help"]);
+
+    expect(
+      screen.getByText("此區塊為靜態檢查清單，不會自動跳轉；請從側邊欄開啟對應頁面。"),
+    ).toBeInTheDocument();
   });
 });
