@@ -5,7 +5,6 @@ import { theme } from "../../styles/theme";
 import { AuthPanel } from "./AuthPanel";
 
 const mockSignInWithEmailPassword = vi.fn();
-const mockSignUpWithEmailPassword = vi.fn();
 const mockSignOutCurrentUser = vi.fn();
 
 function makeFixtureCredential() {
@@ -17,7 +16,6 @@ vi.mock("../../lib/auth", async () => {
   return {
     ...actual,
     signInWithEmailPassword: (...args: unknown[]) => mockSignInWithEmailPassword(...args),
-    signUpWithEmailPassword: (...args: unknown[]) => mockSignUpWithEmailPassword(...args),
     signOutCurrentUser: (...args: unknown[]) => mockSignOutCurrentUser(...args)
   };
 });
@@ -32,13 +30,6 @@ beforeEach(() => {
     id: "user-1",
     email: "demo@example.com"
   });
-  mockSignUpWithEmailPassword.mockResolvedValue({
-    user: {
-      id: "user-2",
-      email: "new@example.com"
-    },
-    needsEmailConfirmation: true
-  });
   mockSignOutCurrentUser.mockResolvedValue(true);
 });
 
@@ -46,6 +37,7 @@ function renderAuthPanel(props?: {
   user?: { id: string; email: string | null } | null;
   isChecking?: boolean;
   authError?: string | null;
+  variant?: "header" | "gate";
 }) {
   render(
     <ThemeProvider theme={theme}>
@@ -53,6 +45,7 @@ function renderAuthPanel(props?: {
         user={props?.user ?? null}
         isChecking={props?.isChecking ?? false}
         authError={props?.authError ?? null}
+        variant={props?.variant}
       />
     </ThemeProvider>
   );
@@ -62,6 +55,16 @@ describe("AuthPanel", () => {
   it("shows checking state", () => {
     renderAuthPanel({ isChecking: true });
     expect(screen.getByTestId("auth-session-loading")).toBeInTheDocument();
+  });
+
+  it("shows login form without public signup in the default flow", () => {
+    renderAuthPanel();
+
+    expect(screen.getByTestId("auth-email-input")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-password-input")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-submit-button")).toHaveTextContent("登入");
+    expect(screen.queryByTestId("auth-mode-signup")).toBeNull();
+    expect(screen.queryByText("註冊")).toBeNull();
   });
 
   it("signs in with email and password", async () => {
@@ -85,41 +88,17 @@ describe("AuthPanel", () => {
     });
   });
 
-  it("switches to signup mode and signs up", async () => {
-    const testCredential = makeFixtureCredential();
+  it("shows missing field validation for login", async () => {
     renderAuthPanel();
 
-    fireEvent.click(screen.getByTestId("auth-mode-signup"));
-    fireEvent.change(screen.getByTestId("auth-email-input"), {
-      target: { value: "new@example.com" }
-    });
-    fireEvent.change(screen.getByTestId("auth-password-input"), {
-      target: { value: testCredential }
-    });
     fireEvent.click(screen.getByTestId("auth-submit-button"));
 
     await waitFor(() => {
-      expect(mockSignUpWithEmailPassword).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId("auth-local-error")).toHaveTextContent(
+        "請填寫 Email 與密碼。"
+      );
     });
-    expect(mockSignUpWithEmailPassword).toHaveBeenCalledWith({
-      email: "new@example.com",
-      password: testCredential
-    });
-    expect(screen.getByTestId("auth-signup-message")).toHaveTextContent(
-      "註冊成功，請先完成 Email 驗證後再登入。"
-    );
-  });
-
-  it("shows missing field validation for signup", async () => {
-    renderAuthPanel();
-
-    fireEvent.click(screen.getByTestId("auth-mode-signup"));
-    fireEvent.click(screen.getByTestId("auth-submit-button"));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("auth-local-error")).toHaveTextContent("請輸入 Email 與密碼。");
-    });
-    expect(mockSignUpWithEmailPassword).not.toHaveBeenCalled();
+    expect(mockSignInWithEmailPassword).not.toHaveBeenCalled();
   });
 
   it("shows session or local error in unauthenticated state", async () => {
