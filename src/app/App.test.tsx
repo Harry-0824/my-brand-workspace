@@ -1,8 +1,8 @@
-﻿import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import {
   PRIMARY_SIDEBAR_ROUTES,
@@ -11,8 +11,33 @@ import {
 } from "./routes";
 import { theme } from "../styles/theme";
 
+const authMocks = vi.hoisted(() => ({
+  getAuthSessionUser: vi.fn(),
+  subscribeToAuthSessionUserChanges: vi.fn(),
+}));
+
+vi.mock("../lib/auth", async () => {
+  const actual = await vi.importActual("../lib/auth");
+  return {
+    ...actual,
+    getAuthSessionUser: (...args: unknown[]) => authMocks.getAuthSessionUser(...args),
+    subscribeToAuthSessionUserChanges: (...args: unknown[]) =>
+      authMocks.subscribeToAuthSessionUserChanges(...args),
+  };
+});
+
 afterEach(() => {
   cleanup();
+});
+
+beforeEach(() => {
+  authMocks.getAuthSessionUser.mockReset();
+  authMocks.subscribeToAuthSessionUserChanges.mockReset();
+  authMocks.getAuthSessionUser.mockResolvedValue({
+    id: "user-1",
+    email: "demo@example.com",
+  });
+  authMocks.subscribeToAuthSessionUserChanges.mockResolvedValue(() => {});
 });
 
 function renderApp(initialEntries: string[] = ["/"]) {
@@ -23,6 +48,17 @@ function renderApp(initialEntries: string[] = ["/"]) {
       </ThemeProvider>
     </MemoryRouter>,
   );
+}
+
+async function renderAuthenticatedApp(initialEntries: string[] = ["/"]) {
+  renderApp(initialEntries);
+  await screen.findByTestId("private-workspace-shell");
+}
+
+async function renderUnauthenticatedApp(initialEntries: string[] = ["/"]) {
+  authMocks.getAuthSessionUser.mockResolvedValueOnce(null);
+  renderApp(initialEntries);
+  await screen.findByTestId("private-login-gate");
 }
 
 function assertSingleActiveLink(
@@ -37,9 +73,60 @@ function assertSingleActiveLink(
   expect(currentPageLinks[0]).toHaveTextContent(expectedLabel);
 }
 
+describe("Private workspace auth gate", () => {
+  it("guides unauthenticated users to login instead of rendering workspace pages", async () => {
+    await renderUnauthenticatedApp(["/reports"]);
+
+    expect(
+      screen.getByRole("heading", { name: "私人工作台登入" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("auth-email-input")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-password-input")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-submit-button")).toHaveTextContent("登入");
+    expect(screen.queryByTestId("auth-mode-signup")).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "主要導航" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "報表" })).toBeNull();
+  });
+
+  it("keeps authenticated refresh access to private workspace routes", async () => {
+    await renderAuthenticatedApp(["/projects"]);
+
+    expect(screen.getByTestId("private-workspace-shell")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "專案管理" }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("auth-user-badge")).toHaveTextContent(
+      "demo@example.com",
+    );
+  });
+
+  it("enters the workspace when a login session event arrives", async () => {
+    const sessionChangeRef: {
+      current?: (user: { id: string; email: string }) => void;
+    } = {};
+    authMocks.getAuthSessionUser.mockResolvedValueOnce(null);
+    authMocks.subscribeToAuthSessionUserChanges.mockImplementationOnce((callback) => {
+      sessionChangeRef.current = callback;
+      return Promise.resolve(() => {});
+    });
+
+    renderApp(["/tasks"]);
+    await screen.findByTestId("private-login-gate");
+
+    sessionChangeRef.current?.({ id: "user-2", email: "member@example.com" });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("private-workspace-shell")).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("heading", { name: "任務管理" }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("App static routing", () => {
-  it("renders next-step CTA sections on core pages", () => {
-    renderApp(["/projects"]);
+  it("renders next-step CTA sections on core pages", async () => {
+    await renderAuthenticatedApp(["/projects"]);
     expect(
       screen.getByRole("heading", { name: "下一步建議" }),
     ).toBeInTheDocument();
@@ -48,7 +135,7 @@ describe("App static routing", () => {
     ).toBeInTheDocument();
 
     cleanup();
-    renderApp(["/clients"]);
+    await renderAuthenticatedApp(["/clients"]);
     expect(
       screen.getByRole("heading", { name: "下一步建議" }),
     ).toBeInTheDocument();
@@ -60,7 +147,7 @@ describe("App static routing", () => {
   it("navigates from projects CTA link to /tasks", async () => {
     const user = userEvent.setup();
 
-    renderApp(["/projects"]);
+    await renderAuthenticatedApp(["/projects"]);
 
     await user.click(
       screen.getByRole("link", { name: "前往任務頁面，安排下一步執行項目" }),
@@ -70,8 +157,8 @@ describe("App static routing", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders dashboard MVP overview and quick action links on /", () => {
-    renderApp(["/"]);
+  it("renders dashboard MVP overview and quick action links on /", async () => {
+    await renderAuthenticatedApp(["/"]);
 
     expect(
       screen.getByRole("heading", { name: "工作區快照" }),
@@ -99,7 +186,7 @@ describe("App static routing", () => {
   it("navigates to /projects from dashboard quick actions", async () => {
     const user = userEvent.setup();
 
-    renderApp(["/"]);
+    await renderAuthenticatedApp(["/"]);
 
     await user.click(
       screen.getByRole("link", { name: "quick-action-/projects" }),
@@ -112,7 +199,7 @@ describe("App static routing", () => {
   it("keeps key dashboard/page CTA links on expected routes", async () => {
     const user = userEvent.setup();
 
-    renderApp(["/"]);
+    await renderAuthenticatedApp(["/"]);
     await user.click(
       screen.getByRole("link", { name: "quick-action-/invoices" }),
     );
@@ -131,26 +218,26 @@ describe("App static routing", () => {
       path,
       `${heading} | My Brand Workspace`,
     ]),
-  )("sets document.title for %s", (path, expectedTitle) => {
-    renderApp([path]);
+  )("sets document.title for %s", async (path, expectedTitle) => {
+    await renderAuthenticatedApp([path]);
 
     expect(document.title).toBe(expectedTitle);
   });
 
-  it("sets document.title fallback for unknown route", () => {
-    renderApp(["/unknown-route"]);
+  it("sets document.title fallback for unknown route", async () => {
+    await renderAuthenticatedApp(["/unknown-route"]);
 
     expect(document.title).toBe("找不到頁面 | My Brand Workspace");
   });
 
-  it.each(ROUTE_HEADING_CASES)("renders $path", ({ path, heading }) => {
-    renderApp([path]);
+  it.each(ROUTE_HEADING_CASES)("renders $path", async ({ path, heading }) => {
+    await renderAuthenticatedApp([path]);
 
     expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
   });
 
-  it("renders NotFoundPage on unknown route", () => {
-    renderApp(["/unknown-route"]);
+  it("renders NotFoundPage on unknown route", async () => {
+    await renderAuthenticatedApp(["/unknown-route"]);
 
     expect(
       screen.getByRole("heading", { name: "找不到頁面" }),
@@ -161,7 +248,7 @@ describe("App static routing", () => {
   it("navigates through all sidebar routes and keeps a single active link", async () => {
     const user = userEvent.setup();
 
-    renderApp(["/"]);
+    await renderAuthenticatedApp(["/"]);
 
     const navigation = screen.getByRole("navigation", { name: "主要導航" });
 
@@ -179,8 +266,8 @@ describe("App static routing", () => {
 });
 
 describe("Simplified navigation structure", () => {
-  it("sidebar primary navigation shows exactly 5 core workflow entries", () => {
-    renderApp(["/"]);
+  it("sidebar primary navigation shows exactly 5 core workflow entries", async () => {
+    await renderAuthenticatedApp(["/"]);
 
     const navigation = screen.getByRole("navigation", { name: "主要導航" });
 
@@ -197,8 +284,8 @@ describe("Simplified navigation structure", () => {
     expect(within(navigation).queryByRole("link", { name: "設定" })).toBeNull();
   });
 
-  it("sidebar shows 報表 and 說明 as secondary entries", () => {
-    renderApp(["/"]);
+  it("sidebar shows 報表 and 說明 as secondary entries", async () => {
+    await renderAuthenticatedApp(["/"]);
 
     const navigation = screen.getByRole("navigation", { name: "主要導航" });
 
@@ -213,7 +300,7 @@ describe("Simplified navigation structure", () => {
   it("settings gear icon is in the navbar and navigates to /settings", async () => {
     const user = userEvent.setup();
 
-    renderApp(["/"]);
+    await renderAuthenticatedApp(["/"]);
 
     expect(screen.queryByRole("button", { name: "新增" })).toBeNull();
     expect(screen.getByText("頁面內新增")).toHaveAttribute(
@@ -239,14 +326,14 @@ describe("Simplified navigation structure", () => {
     ["/reports", "報表"],
     ["/settings", "設定"],
     ["/help", "說明"],
-  ])("direct route %s is still accessible", (path, heading) => {
-    renderApp([path]);
+  ])("direct route %s is still accessible after login", async (path, heading) => {
+    await renderAuthenticatedApp([path]);
 
     expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
   });
 
-  it("clarifies that help quick-start items are static", () => {
-    renderApp(["/help"]);
+  it("clarifies that help quick-start items are static", async () => {
+    await renderAuthenticatedApp(["/help"]);
 
     expect(
       screen.getByText("此區塊為靜態檢查清單，不會自動跳轉；請從側邊欄開啟對應頁面。"),
