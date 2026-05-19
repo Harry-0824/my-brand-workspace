@@ -21,6 +21,7 @@ import {
   createZeroReportsOverview,
   fetchReportsOverviewForCurrentUser
 } from "../lib/reportsOverview";
+import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 function formatCurrency(amount: number) {
   return `NT$${amount.toLocaleString("zh-TW", {
@@ -59,7 +60,7 @@ export function ReportsPage() {
           loadError instanceof Error
             ? loadError.message
             : "目前無法載入報表資料，請稍後再試。";
-        setError(message);
+        setError(getUserFacingErrorMessage(loadError, message));
         setOverview(createZeroReportsOverview());
       } finally {
         if (active) {

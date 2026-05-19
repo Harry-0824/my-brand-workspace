@@ -21,8 +21,12 @@ export function AppHeader({ authUser, isAuthChecking, authError }: AppHeaderProp
           <SearchIcon aria-hidden="true" />
           <SearchInput type="search" placeholder="搜尋專案、任務或客戶..." />
         </SearchLabel>
-        <CreateButton type="button">新增</CreateButton>
-        <NotificationIcon aria-label="通知" role="img" />
+        <CreateHint title="新增請使用各頁面的新增表單">頁面內新增</CreateHint>
+        <NotificationIcon
+          aria-label="通知功能尚未啟用"
+          role="img"
+          title="通知功能尚未啟用"
+        />
         <SettingsLink to="/settings" aria-label="設定">
           <GearIcon aria-hidden="true" />
         </SettingsLink>
@@ -113,14 +117,18 @@ const SearchInput = styled.input`
   }
 `;
 
-const CreateButton = styled.button`
+const CreateHint = styled.span`
   min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
   padding: 0 ${({ theme }) => theme.spacing.lg};
+  border: 1px solid rgb(98 214 199 / 0.24);
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.accent};
-  color: #071111;
+  background: rgb(98 214 199 / 0.1);
+  color: ${({ theme }) => theme.accent};
   font-size: 0.92rem;
   font-weight: 800;
+  cursor: default;
 `;
 
 const NotificationIcon = styled.span`
@@ -132,6 +140,7 @@ const NotificationIcon = styled.span`
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.surfaceElevated};
   color: ${({ theme }) => theme.textSecondary};
+  cursor: default;
 
   &::before {
     content: "";

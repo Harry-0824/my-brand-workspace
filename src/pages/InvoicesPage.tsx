@@ -32,6 +32,7 @@ import {
   updateIncomeRecordForCurrentUser,
   type UpdateIncomeRecordInput
 } from "../lib/incomeRecords";
+import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 const STATUS_LABELS: Record<IncomeRecordStatus, string> = {
   pending: "待收款",
@@ -123,7 +124,7 @@ export function InvoicesPage() {
           error instanceof Error
             ? error.message
             : "目前無法讀取收款紀錄，請稍後再試。";
-        setFetchError(message);
+        setFetchError(getUserFacingErrorMessage(error, message));
       } finally {
         if (active) {
           setIsLoading(false);
@@ -264,7 +265,7 @@ export function InvoicesPage() {
         error instanceof Error
           ? error.message
           : "目前無法建立收款紀錄，請稍後再試。";
-      setCreateError(message);
+      setCreateError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsCreating(false);
     }
@@ -303,7 +304,7 @@ export function InvoicesPage() {
         error instanceof Error
           ? error.message
           : "目前無法更新收款紀錄，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsUpdatingRecordId(null);
     }
@@ -332,7 +333,7 @@ export function InvoicesPage() {
         error instanceof Error
           ? error.message
           : "目前無法刪除收款紀錄，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsDeletingRecordId(null);
     }

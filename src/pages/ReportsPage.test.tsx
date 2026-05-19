@@ -103,4 +103,21 @@ describe("ReportsPage Supabase read-only integration", () => {
       );
     });
   });
+
+  it("does not show raw auth session errors", async () => {
+    mockFetchReportsOverviewForCurrentUser.mockRejectedValueOnce(
+      new Error("Failed to read authenticated user: Auth session missing!")
+    );
+
+    renderReportsPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("reports-error-state")).toHaveTextContent(
+        "請先登入後再查看此資料。"
+      );
+    });
+    expect(
+      screen.queryByText("Failed to read authenticated user: Auth session missing!")
+    ).toBeNull();
+  });
 });

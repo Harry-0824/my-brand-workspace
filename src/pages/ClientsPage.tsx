@@ -30,6 +30,7 @@ import {
   fetchClientsForCurrentUser,
   updateClientForCurrentUser
 } from "../lib/clients";
+import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 const STATUS_LABELS: Record<ClientStatus, string> = {
   active: "合作中",
@@ -103,7 +104,7 @@ export function ClientsPage() {
           error instanceof Error
             ? error.message
             : "目前無法讀取客戶資料，請稍後再試。";
-        setFetchError(message);
+        setFetchError(getUserFacingErrorMessage(error, message));
       } finally {
         if (active) {
           setIsLoading(false);
@@ -209,7 +210,7 @@ export function ClientsPage() {
         error instanceof Error
           ? error.message
           : "目前無法建立客戶，請稍後再試。";
-      setCreateError(message);
+      setCreateError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsCreating(false);
     }
@@ -237,7 +238,7 @@ export function ClientsPage() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "目前無法更新客戶，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsUpdatingClientId(null);
     }
@@ -264,7 +265,7 @@ export function ClientsPage() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "目前無法刪除客戶，請稍後再試。";
-      setActionError(message);
+      setActionError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsDeletingClientId(null);
     }
