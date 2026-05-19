@@ -70,7 +70,8 @@ export function AppLayout() {
           <LoginGateEyebrow>Private Workspace</LoginGateEyebrow>
           <LoginGateTitle>私人工作台登入</LoginGateTitle>
           <LoginGateCopy>
-            請使用已建立的帳號登入後，再進入 Dashboard、專案、客戶、任務、收款與報表。
+            此私人工作台不開放公開註冊。請先由管理者在 Supabase Auth
+            建立帳號，再使用該帳號登入後，進入 Dashboard、專案、客戶、任務、收款與報表。
           </LoginGateCopy>
           <AuthPanel
             user={authUser}
