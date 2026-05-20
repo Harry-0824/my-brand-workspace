@@ -303,14 +303,8 @@ describe("Simplified navigation structure", () => {
     await renderAuthenticatedApp(["/"]);
 
     expect(screen.queryByRole("button", { name: "新增" })).toBeNull();
-    expect(screen.getByText("頁面內新增")).toHaveAttribute(
-      "title",
-      "新增請使用各頁面的新增表單",
-    );
-    expect(screen.getByRole("img", { name: "通知功能尚未啟用" })).toHaveAttribute(
-      "title",
-      "通知功能尚未啟用",
-    );
+    expect(screen.queryByText("頁面內新增")).toBeNull();
+    expect(screen.queryByRole("img", { name: "通知功能尚未啟用" })).toBeNull();
 
     const settingsLink = screen.getByRole("link", { name: "設定" });
 

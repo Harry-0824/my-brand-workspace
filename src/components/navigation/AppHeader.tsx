@@ -1,7 +1,6 @@
 import type { AuthUser } from "../../lib/auth";
 import { AuthPanel } from "../auth/AuthPanel";
 import {
-  CreateHint,
   GearIcon,
   HeaderActions,
   HeaderShell,
@@ -10,8 +9,7 @@ import {
   SearchInput,
   SearchLabel,
   SettingsLink,
-  TitleGroup,
-  NotificationIcon
+  TitleGroup
 } from "./AppHeader.styles";
 
 type AppHeaderProps = {
@@ -32,12 +30,6 @@ export function AppHeader({ authUser, isAuthChecking, authError }: AppHeaderProp
           <SearchIcon aria-hidden="true" />
           <SearchInput type="search" placeholder="搜尋專案、任務或客戶..." />
         </SearchLabel>
-        <CreateHint title="新增請使用各頁面的新增表單">頁面內新增</CreateHint>
-        <NotificationIcon
-          aria-label="通知功能尚未啟用"
-          role="img"
-          title="通知功能尚未啟用"
-        />
         <SettingsLink to="/settings" aria-label="設定">
           <GearIcon aria-hidden="true" />
         </SettingsLink>

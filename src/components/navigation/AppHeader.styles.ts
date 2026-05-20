@@ -78,41 +78,6 @@ export const SearchInput = styled.input`
   }
 `;
 
-export const CreateHint = styled.span`
-  min-height: 2.75rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 ${({ theme }) => theme.spacing.lg};
-  border: 1px solid rgb(98 214 199 / 0.24);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: rgb(98 214 199 / 0.1);
-  color: ${({ theme }) => theme.accent};
-  font-size: 0.92rem;
-  font-weight: 800;
-  cursor: default;
-`;
-
-export const NotificationIcon = styled.span`
-  width: 2.75rem;
-  height: 2.75rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-  color: ${({ theme }) => theme.textSecondary};
-  cursor: default;
-
-  &::before {
-    content: "";
-    width: 0.76rem;
-    height: 0.9rem;
-    border: 2px solid currentColor;
-    border-bottom-width: 3px;
-    border-radius: 999px 999px 0.45rem 0.45rem;
-  }
-`;
-
 export const SettingsLink = styled(NavLink)`
   width: 2.75rem;
   height: 2.75rem;
