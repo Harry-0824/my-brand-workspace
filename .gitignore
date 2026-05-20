@@ -4,3 +4,5 @@ dist
 .env.local
 .netlify
 .vite
+.playwright-cli/
+supabase/.temp/
