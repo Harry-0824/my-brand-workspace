@@ -1,4 +1,14 @@
-import styled from "styled-components";
+import {
+  SnapshotGrid,
+  SnapshotCard,
+  SnapshotLabel,
+  SnapshotValue,
+  SnapshotNote,
+  FocusSection,
+  FocusTitle,
+  FocusList,
+  FocusItem
+} from "./DashboardMvpOverview.styles";
 import type { DashboardSummary } from "../../lib/dashboardSummary";
 import { dashboardWeekFocus, dashboardWorkspaceSnapshot } from "./dashboardData";
 import { DashboardPanel } from "./shared/DashboardPanel";
@@ -74,64 +84,3 @@ export function DashboardMvpOverview({
     </DashboardPanel>
   );
 }
-
-const SnapshotGrid = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const SnapshotCard = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const SnapshotLabel = styled.p`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.84rem;
-  font-weight: 700;
-`;
-
-const SnapshotValue = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.35rem;
-  font-weight: 800;
-`;
-
-const SnapshotNote = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.84rem;
-  line-height: 1.6;
-`;
-
-const FocusSection = styled.section`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: rgb(255 255 255 / 0.025);
-`;
-
-const FocusTitle = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.92rem;
-  font-weight: 800;
-`;
-
-const FocusList = styled.ul`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  padding-left: 1rem;
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.xs};
-`;
-
-const FocusItem = styled.li`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.88rem;
-  line-height: 1.65;
-`;

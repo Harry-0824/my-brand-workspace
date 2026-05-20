@@ -1,4 +1,12 @@
-import styled from "styled-components";
+import {
+  StateGrid,
+  StateCard,
+  StateHeader,
+  StateBadge,
+  StateTitle,
+  StateDescription,
+  PlaceholderBlock
+} from "./DashboardStatePreviews.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 
@@ -71,56 +79,3 @@ export function DashboardStatePreviews() {
     </DashboardPanel>
   );
 }
-
-const StateGrid = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const StateCard = styled.article<{ $type: StateType }>`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid ${({ $type }) => cardTone[$type].border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const StateHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-`;
-
-const StateBadge = styled.span<{ $type: StateType }>`
-  padding: 0.25rem 0.5rem;
-  border: 1px solid ${({ $type }) => cardTone[$type].badgeBorder};
-  border-radius: 999px;
-  color: ${({ $type }) => cardTone[$type].badgeColor};
-  background: ${({ $type }) => cardTone[$type].badgeBg};
-  font-size: 0.72rem;
-  font-weight: 800;
-`;
-
-const StateTitle = styled.h3`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.95rem;
-  font-weight: 800;
-`;
-
-const StateDescription = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.86rem;
-  line-height: 1.7;
-`;
-
-const PlaceholderBlock = styled.div<{ $type: StateType }>`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  height: 2.2rem;
-  border-radius: ${({ theme }) => theme.radius.sm};
-  background: ${({ $type }) =>
-    $type === "loading" ? "linear-gradient(90deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02))" : "rgb(255 255 255 / 0.03)"};
-  border: 1px solid rgb(255 255 255 / 0.07);
-`;

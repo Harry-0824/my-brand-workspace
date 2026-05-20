@@ -1,4 +1,18 @@
-import styled from "styled-components";
+import {
+  MetricGrid,
+  MetricCard,
+  MetricLabel,
+  MetricValue,
+  Rows,
+  Row,
+  RowTop,
+  Client,
+  StatusBadge,
+  Item,
+  RowBottom,
+  Amount,
+  DateText
+} from "./RevenueInvoiceSummary.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 
@@ -102,92 +116,3 @@ export function RevenueInvoiceSummary() {
     </DashboardPanel>
   );
 }
-
-const MetricGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
-`;
-
-const MetricCard = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const MetricLabel = styled.p`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.8rem;
-  font-weight: 700;
-`;
-
-const MetricValue = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.1rem;
-  font-weight: 800;
-`;
-
-const Rows = styled.div`
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
-`;
-
-const Row = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const RowTop = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const Client = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.95rem;
-  font-weight: 800;
-`;
-
-const StatusBadge = styled.span<{ $status: RevenueStatus }>`
-  padding: 0.25rem 0.5rem;
-  border: 1px solid ${({ $status }) => statusTone[$status].border};
-  border-radius: 999px;
-  color: ${({ $status }) => statusTone[$status].color};
-  background: ${({ $status }) => statusTone[$status].background};
-  font-size: 0.72rem;
-  font-weight: 800;
-`;
-
-const Item = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.88rem;
-`;
-
-const RowBottom = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.sm};
-  margin-top: ${({ theme }) => theme.spacing.sm};
-`;
-
-const Amount = styled.p`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.92rem;
-  font-weight: 800;
-`;
-
-const DateText = styled.p`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.82rem;
-  font-weight: 700;
-`;
