@@ -34,7 +34,7 @@ export function BackToTopButton() {
       data-testid="back-to-top-button"
       onClick={handleScrollToTop}
     >
-      置頂
+      ↑
     </FloatingButton>
   );
 }
