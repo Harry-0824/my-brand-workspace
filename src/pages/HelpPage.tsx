@@ -5,7 +5,8 @@ import {
   CardGrid,
   Card,
   CardTitle,
-  CardDetail
+  CardDetail,
+  QuickStartLink
 } from "./HelpPage.styles";
 import {
   PageDescription,
@@ -20,7 +21,35 @@ import {
 } from "../components/page/PageContentPrimitives";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
-import { faqPreview, gettingStarted, workflows } from "./data/helpPageData";
+import { faqPreview, workflows } from "./data/helpPageData";
+
+const quickStartActions = [
+  {
+    title: "專案 / Projects",
+    detail: "前往專案頁面建立或整理專案",
+    to: "/projects"
+  },
+  {
+    title: "任務 / Tasks",
+    detail: "前往任務頁面安排本週工作",
+    to: "/tasks"
+  },
+  {
+    title: "客戶 / Clients",
+    detail: "前往客戶頁面管理名單與備註",
+    to: "/clients"
+  },
+  {
+    title: "收款紀錄 / Income Records",
+    detail: "前往收款頁面追蹤款項狀態",
+    to: "/invoices"
+  },
+  {
+    title: "報表 / Reports",
+    detail: "前往報表頁面檢視整體摘要",
+    to: "/reports"
+  }
+] as const;
 
 export function HelpPage() {
   return (
@@ -36,18 +65,21 @@ export function HelpPage() {
         <DashboardSectionHeader
           titleId="help-start-title"
           title="快速開始"
-          description="以下為建立工作區流程的靜態檢查清單。"
+          description="點擊下列項目可快速前往對應功能頁面。"
           withDivider
         />
         <List>
-          {gettingStarted.map((item) => (
-            <ListRow key={item}>
-              <RowTitle>{item}</RowTitle>
+          {quickStartActions.map((item) => (
+            <ListRow key={item.to}>
+              <QuickStartLink to={item.to}>
+                <RowTitle as="span">{item.title}</RowTitle>
+                <RowMeta>{item.detail}</RowMeta>
+              </QuickStartLink>
             </ListRow>
           ))}
         </List>
         <StaticNote>
-          此區塊為靜態檢查清單，不會自動跳轉；請從側邊欄開啟對應頁面。
+          可使用快速開始直接跳轉，或透過側邊欄切換其他頁面。
         </StaticNote>
       </DashboardPanel>
 

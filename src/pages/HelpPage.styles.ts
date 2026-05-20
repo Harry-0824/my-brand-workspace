@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 export const RowTitle = styled.h3`
@@ -17,6 +18,16 @@ export const StaticNote = styled.p`
   color: ${({ theme }) => theme.textSecondary};
   font-size: 0.84rem;
   line-height: 1.65;
+`;
+
+export const QuickStartLink = styled(Link)`
+  display: block;
+  text-decoration: none;
+
+  &:hover ${RowTitle},
+  &:focus-visible ${RowTitle} {
+    text-decoration: underline;
+  }
 `;
 
 export const CardGrid = styled.div`

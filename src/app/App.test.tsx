@@ -332,11 +332,25 @@ describe("Simplified navigation structure", () => {
     expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
   });
 
-  it("clarifies that help quick-start items are static", async () => {
+  it("shows clickable help quick-start items with expected routes", async () => {
     await renderAuthenticatedApp(["/help"]);
 
     expect(
-      screen.getByText("此區塊為靜態檢查清單，不會自動跳轉；請從側邊欄開啟對應頁面。"),
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: "專案 / Projects 前往專案頁面建立或整理專案" }),
+    ).toHaveAttribute("href", "/projects");
+    expect(
+      screen.getByRole("link", { name: "任務 / Tasks 前往任務頁面安排本週工作" }),
+    ).toHaveAttribute("href", "/tasks");
+    expect(
+      screen.getByRole("link", { name: "客戶 / Clients 前往客戶頁面管理名單與備註" }),
+    ).toHaveAttribute("href", "/clients");
+    expect(
+      screen.getByRole("link", {
+        name: "收款紀錄 / Income Records 前往收款頁面追蹤款項狀態",
+      }),
+    ).toHaveAttribute("href", "/invoices");
+    expect(
+      screen.getByRole("link", { name: "報表 / Reports 前往報表頁面檢視整體摘要" }),
+    ).toHaveAttribute("href", "/reports");
   });
 });
