@@ -7,26 +7,32 @@ const cardTone = {
     border: "rgb(255 255 255 / 0.08)",
     badgeColor: "#b9d6f8",
     badgeBorder: "rgb(121 179 255 / 0.32)",
-    badgeBg: "rgb(121 179 255 / 0.12)"
+    badgeBg: "rgb(121 179 255 / 0.12)",
   },
   empty: {
     border: "rgb(255 255 255 / 0.08)",
     badgeColor: "#b7c2d0",
     badgeBorder: "rgb(154 167 183 / 0.28)",
-    badgeBg: "rgb(154 167 183 / 0.1)"
+    badgeBg: "rgb(154 167 183 / 0.1)",
   },
   error: {
     border: "rgb(255 107 107 / 0.2)",
     badgeColor: "#ffb4ad",
     badgeBorder: "rgb(255 107 107 / 0.3)",
-    badgeBg: "rgb(255 107 107 / 0.12)"
-  }
+    badgeBg: "rgb(255 107 107 / 0.12)",
+  },
+  ready: {
+    border: "rgb(92 207 141 / 0.2)",
+    badgeColor: "#a7efc8",
+    badgeBorder: "rgb(92 207 141 / 0.32)",
+    badgeBg: "rgb(92 207 141 / 0.1)",
+  },
 } as const;
 
 export const StateGrid = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
@@ -72,6 +78,8 @@ export const PlaceholderBlock = styled.div<{ $type: StateType }>`
   height: 2.2rem;
   border-radius: ${({ theme }) => theme.radius.sm};
   background: ${({ $type }) =>
-    $type === "loading" ? "linear-gradient(90deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02))" : "rgb(255 255 255 / 0.03)"};
+    $type === "loading"
+      ? "linear-gradient(90deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02))"
+      : "rgb(255 255 255 / 0.03)"};
   border: 1px solid rgb(255 255 255 / 0.07);
 `;

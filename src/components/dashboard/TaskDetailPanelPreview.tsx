@@ -6,87 +6,111 @@ import {
   InfoItem,
   InfoLabel,
   InfoValue,
-  Block,
-  BlockTitle,
-  BodyText,
-  Checklist,
-  ChecklistItem,
-  StatusDot,
-  ChecklistText,
-  BottomGrid,
-  AttachmentList,
-  AttachmentItem
 } from "./TaskDetailPanelPreview.styles";
+import { TaskRecord } from "../../lib/tasks";
+import { ProjectRecord } from "../../lib/projects";
 
-const taskInfo = [
-  { label: "任務名稱", value: "完成首頁線框" },
-  { label: "所屬專案", value: "品牌官網重設計" },
-  { label: "狀態", value: "進行中" },
-  { label: "優先級", value: "高" },
-  { label: "到期日", value: "5 月 24 日" },
-  { label: "客戶", value: "Bright Studio" }
-] as const;
+const STATUS_DISPLAY: Record<TaskRecord["status"], string> = {
+  todo: "待辦",
+  in_progress: "進行中",
+  done: "已完成",
+  cancelled: "已取消",
+};
 
-const checklist = [
-  { text: "完成首屏 wireframe", done: true },
-  { text: "調整服務區塊資訊層級", done: true },
-  { text: "整理 CTA 文案", done: false },
-  { text: "確認客戶回饋重點", done: false }
-] as const;
+const PRIORITY_DISPLAY: Record<string, string> = {
+  low: "低",
+  medium: "中",
+  high: "高",
+  urgent: "急",
+};
 
-const attachments = ["wireframe-v2.fig", "client-feedback.md"] as const;
+function selectFeaturedTask(tasks: TaskRecord[]): TaskRecord | null {
+  return (
+    tasks.find((t) => t.status === "in_progress") ??
+    tasks.find((t) => t.status === "todo") ??
+    tasks[0] ??
+    null
+  );
+}
 
-export function TaskDetailPanelPreview() {
+function formatDueDate(dateString: string | null): string {
+  if (!dateString) return "—";
+  const date = new Date(dateString);
+  return `${date.getMonth() + 1} 月 ${date.getDate()} 日`;
+}
+
+type TaskDetailPanelPreviewProps = {
+  tasks: TaskRecord[];
+  projects: ProjectRecord[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+export function TaskDetailPanelPreview({
+  tasks,
+  projects,
+  isLoading,
+  error,
+}: TaskDetailPanelPreviewProps) {
+  const featuredTask = selectFeaturedTask(tasks);
+
   return (
     <Panel aria-labelledby="task-detail-panel-title">
       <SectionTitle id="task-detail-panel-title">任務詳情</SectionTitle>
-      <SectionDescription>預覽選取任務的狀態、內容與執行細節。</SectionDescription>
+      <SectionDescription>預覽目前進行中或待辦任務的細節。</SectionDescription>
 
-      <InfoGrid>
-        {taskInfo.map((item) => (
-          <InfoItem key={item.label}>
-            <InfoLabel>{item.label}</InfoLabel>
-            <InfoValue>{item.value}</InfoValue>
+      {isLoading ? (
+        <InfoGrid>
+          <InfoItem>
+            <InfoLabel>狀態</InfoLabel>
+            <InfoValue>載入中…</InfoValue>
           </InfoItem>
-        ))}
-      </InfoGrid>
-
-      <Block>
-        <BlockTitle>任務說明</BlockTitle>
-        <BodyText>
-          根據客戶回饋調整首頁首屏、服務區塊與行動呼籲區，確認桌面版資訊層級與視覺節奏。
-        </BodyText>
-      </Block>
-
-      <Block>
-        <BlockTitle>Checklist</BlockTitle>
-        <Checklist>
-          {checklist.map((item) => (
-            <ChecklistItem key={item.text}>
-              <StatusDot $done={item.done} aria-hidden="true" />
-              <ChecklistText>{item.text}</ChecklistText>
-            </ChecklistItem>
-          ))}
-        </Checklist>
-      </Block>
-
-      <BottomGrid>
-        <Block>
-          <BlockTitle>附件</BlockTitle>
-          <AttachmentList>
-            {attachments.map((item) => (
-              <AttachmentItem key={item}>{item}</AttachmentItem>
-            ))}
-          </AttachmentList>
-        </Block>
-
-        <Block>
-          <BlockTitle>備註</BlockTitle>
-          <BodyText>
-            下一步需將首頁主要訊息收斂成 3 個重點，避免首屏資訊過重。
-          </BodyText>
-        </Block>
-      </BottomGrid>
+        </InfoGrid>
+      ) : error ? (
+        <InfoGrid>
+          <InfoItem>
+            <InfoLabel>錯誤</InfoLabel>
+            <InfoValue style={{ color: "#ffb4ad" }}>{error}</InfoValue>
+          </InfoItem>
+        </InfoGrid>
+      ) : !featuredTask ? (
+        <InfoGrid>
+          <InfoItem>
+            <InfoLabel>任務名稱</InfoLabel>
+            <InfoValue>目前沒有任務資料</InfoValue>
+          </InfoItem>
+        </InfoGrid>
+      ) : (
+        <InfoGrid>
+          <InfoItem>
+            <InfoLabel>任務名稱</InfoLabel>
+            <InfoValue>{featuredTask.title}</InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>所屬專案</InfoLabel>
+            <InfoValue>
+              {projects.find((p) => p.id === featuredTask.project_id)?.name ??
+                "獨立任務"}
+            </InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>狀態</InfoLabel>
+            <InfoValue>{STATUS_DISPLAY[featuredTask.status]}</InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>優先級</InfoLabel>
+            <InfoValue>
+              {featuredTask.priority
+                ? (PRIORITY_DISPLAY[featuredTask.priority] ?? "中")
+                : "中"}
+            </InfoValue>
+          </InfoItem>
+          <InfoItem>
+            <InfoLabel>到期日</InfoLabel>
+            <InfoValue>{formatDueDate(featuredTask.due_date)}</InfoValue>
+          </InfoItem>
+        </InfoGrid>
+      )}
     </Panel>
   );
 }

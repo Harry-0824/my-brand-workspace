@@ -1,3 +1,4 @@
+import styled from "styled-components";
 import {
   Panel,
   SectionHeader,
@@ -13,69 +14,56 @@ import {
   DueDateGroup,
   MetaLabel,
   DueDate,
-  ProgressGroup,
-  ProgressHeader,
-  ProgressValue,
-  ProgressTrack,
-  ProgressFill
 } from "./ActiveProjects.styles";
+import { type ProjectRecord } from "../../lib/projects";
 
-const activeProjects = [
-  {
-    name: "品牌官網重設計",
-    client: "Bright Studio",
-    status: "進行中",
-    progress: 75,
-    dueDate: "5 月 24 日",
-    tone: "accent"
-  },
-  {
-    name: "電商功能開發",
-    client: "FlowMart",
-    status: "開發中",
-    progress: 60,
-    dueDate: "5 月 28 日",
-    tone: "accent"
-  },
-  {
-    name: "客戶提案製作",
-    client: "Northwind Co.",
-    status: "待確認",
-    progress: 35,
-    dueDate: "5 月 30 日",
-    tone: "warning"
-  },
-  {
-    name: "個人作品網站",
-    client: "Internal",
-    status: "優化中",
-    progress: 90,
-    dueDate: "6 月 02 日",
-    tone: "success"
-  }
-] as const;
+const StateText = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 0.92rem;
+  line-height: 1.65;
+`;
 
-type ProjectTone = (typeof activeProjects)[number]["tone"];
+const ErrorText = styled.p`
+  margin-top: ${({ theme }) => theme.spacing.md};
+  color: #ffb4ad;
+  font-size: 0.92rem;
+  line-height: 1.65;
+`;
 
-const statusTone = {
-  accent: {
-    color: "#8be4db",
-    background: "rgb(98 214 199 / 0.1)",
-    border: "rgb(98 214 199 / 0.34)"
-  },
-  warning: {
-    color: "#f8d98a",
-    background: "rgb(246 200 95 / 0.1)",
-    border: "rgb(246 200 95 / 0.32)"
-  },
-  success: {
-    color: "#93e3b4",
-    background: "rgb(92 207 141 / 0.1)",
-    border: "rgb(92 207 141 / 0.3)"
-  }
-} as const satisfies Record<ProjectTone, { color: string; background: string; border: string }>;
+type ProjectTone = "accent" | "warning" | "success";
 
-export function ActiveProjects() {
+function getStatusTone(status: ProjectRecord["status"]): ProjectTone {
+  if (status === "active") return "accent";
+  if (status === "completed") return "success";
+  return "warning";
+}
+
+function getStatusLabel(status: ProjectRecord["status"]): string {
+  if (status === "active") return "進行中";
+  if (status === "paused") return "暫停中";
+  if (status === "completed") return "已完成";
+  return "已封存";
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return `${date.getMonth() + 1} 月 ${date.getDate()} 日`;
+}
+
+type ActiveProjectsProps = {
+  projects: ProjectRecord[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+export function ActiveProjects({
+  projects,
+  isLoading,
+  error,
+}: ActiveProjectsProps) {
+  const activeProjects = projects.filter((p) => p.status === "active");
+
   return (
     <Panel aria-labelledby="active-projects-title">
       <SectionHeader>
@@ -85,42 +73,43 @@ export function ActiveProjects() {
             目前正在推進的接案專案與完成進度。
           </SectionDescription>
         </div>
-        <ProjectCount>{activeProjects.length} 個專案</ProjectCount>
+        {!isLoading && !error ? (
+          <ProjectCount>{activeProjects.length} 個專案</ProjectCount>
+        ) : null}
       </SectionHeader>
 
-      <ProjectList>
-        {activeProjects.map((project) => (
-          <ProjectRow key={project.name}>
-            <ProjectIdentity>
-              <ProjectName>{project.name}</ProjectName>
-              <ClientName>{project.client}</ClientName>
-            </ProjectIdentity>
+      {isLoading ? (
+        <StateText>載入中…</StateText>
+      ) : error ? (
+        <ErrorText>{error}</ErrorText>
+      ) : activeProjects.length === 0 ? (
+        <StateText>目前沒有進行中的專案。</StateText>
+      ) : (
+        <ProjectList>
+          {activeProjects.map((project) => {
+            const tone = getStatusTone(project.status);
+            return (
+              <ProjectRow key={project.id}>
+                <ProjectIdentity>
+                  <ProjectName>{project.name}</ProjectName>
+                  <ClientName>{project.client_name ?? "—"}</ClientName>
+                </ProjectIdentity>
 
-            <StatusBadge $tone={project.tone}>{project.status}</StatusBadge>
+                <StatusBadge $tone={tone}>
+                  {getStatusLabel(project.status)}
+                </StatusBadge>
 
-            <DueDateGroup>
-              <MetaLabel>到期日</MetaLabel>
-              <DueDate>{project.dueDate}</DueDate>
-            </DueDateGroup>
-
-            <ProgressGroup>
-              <ProgressHeader>
-                <MetaLabel>進度</MetaLabel>
-                <ProgressValue>{project.progress}%</ProgressValue>
-              </ProgressHeader>
-              <ProgressTrack
-                aria-label={`${project.name} 完成進度`}
-                aria-valuemax={100}
-                aria-valuemin={0}
-                aria-valuenow={project.progress}
-                role="progressbar"
-              >
-                <ProgressFill $progress={project.progress} />
-              </ProgressTrack>
-            </ProgressGroup>
-          </ProjectRow>
-        ))}
-      </ProjectList>
+                <DueDateGroup>
+                  <MetaLabel>到期日</MetaLabel>
+                  <DueDate>
+                    {project.due_date ? formatDate(project.due_date) : "—"}
+                  </DueDate>
+                </DueDateGroup>
+              </ProjectRow>
+            );
+          })}
+        </ProjectList>
+      )}
     </Panel>
   );
 }

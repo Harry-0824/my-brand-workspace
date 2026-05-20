@@ -1,29 +1,32 @@
 import styled from "styled-components";
 
-type ClientStatus = "合作中" | "開發中" | "待確認" | "內部優化";
+type ClientStatus = "合作中" | "未往來" | "潛在客戶" | "已封存";
 
 const statusTone = {
   合作中: {
     color: "#a7efc8",
     border: "rgb(92 207 141 / 0.32)",
-    background: "rgb(92 207 141 / 0.12)"
+    background: "rgb(92 207 141 / 0.12)",
   },
-  開發中: {
+  未往來: {
+    color: "#b7c2d0",
+    border: "rgb(154 167 183 / 0.28)",
+    background: "rgb(154 167 183 / 0.1)",
+  },
+  潛在客戶: {
     color: "#f8d98a",
     border: "rgb(246 200 95 / 0.32)",
-    background: "rgb(246 200 95 / 0.12)"
+    background: "rgb(246 200 95 / 0.12)",
   },
-  待確認: {
-    color: "#ffb4ad",
-    border: "rgb(255 107 107 / 0.32)",
-    background: "rgb(255 107 107 / 0.12)"
-  },
-  內部優化: {
+  已封存: {
     color: "#b9d6f8",
     border: "rgb(121 179 255 / 0.32)",
-    background: "rgb(121 179 255 / 0.12)"
-  }
-} as const satisfies Record<ClientStatus, { color: string; border: string; background: string }>;
+    background: "rgb(121 179 255 / 0.12)",
+  },
+} as const satisfies Record<
+  ClientStatus,
+  { color: string; border: string; background: string }
+>;
 
 export const ClientGrid = styled.div`
   display: grid;

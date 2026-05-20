@@ -10,67 +10,105 @@ import {
   ActivityAction,
   ActivityProject,
   ActivityTime,
-  TypeBadge
+  TypeBadge,
 } from "./RecentActivity.styles";
+import { TaskRecord } from "../../lib/tasks";
+import { ProjectRecord } from "../../lib/projects";
 
-const recentActivities = [
-  {
-    action: "完成首頁線框調整",
-    project: "品牌官網重設計",
-    time: "今天 10:30",
-    type: "設計"
-  },
-  {
-    action: "新增購物車流程測試案例",
-    project: "電商功能開發",
-    time: "今天 09:15",
-    type: "測試"
-  },
-  {
-    action: "更新客戶提案內容",
-    project: "客戶提案製作",
-    time: "昨天 16:40",
-    type: "文件"
-  },
-  {
-    action: "完成正式環境部署檢查",
-    project: "個人作品網站",
-    time: "昨天 14:20",
-    type: "部署"
-  },
-  {
-    action: "追蹤客戶回覆狀態",
-    project: "品牌官網重設計",
-    time: "5 月 18 日",
-    type: "溝通"
-  }
-] as const;
+type ActivityItem = {
+  id: string;
+  action: string;
+  project: string;
+  time: string;
+  type: "任務" | "專案";
+  created_at: string;
+};
 
-export function RecentActivity() {
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+  const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round(
+    (todayStart.getTime() - dateStart.getTime()) / 86400000
+  );
+  if (diffDays === 0) return "今天";
+  if (diffDays === 1) return "昨天";
+  if (diffDays < 30) return `${diffDays} 天前`;
+  return `${date.getMonth() + 1} 月 ${date.getDate()} 日`;
+}
+
+function buildActivities(
+  tasks: TaskRecord[],
+  projects: ProjectRecord[]
+): ActivityItem[] {
+  const taskItems: ActivityItem[] = tasks.map((t) => ({
+    id: `task-${t.id}`,
+    action: `新增了任務：${t.title}`,
+    project: projects.find((p) => p.id === t.project_id)?.name ?? "獨立任務",
+    time: formatRelativeTime(t.created_at),
+    type: "任務",
+    created_at: t.created_at,
+  }));
+  const projectItems: ActivityItem[] = projects.map((p) => ({
+    id: `project-${p.id}`,
+    action: `新增了專案：${p.name}`,
+    project: p.name,
+    time: formatRelativeTime(p.created_at),
+    type: "專案",
+    created_at: p.created_at,
+  }));
+  return [...taskItems, ...projectItems]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 10);
+}
+
+type RecentActivityProps = {
+  tasks: TaskRecord[];
+  projects: ProjectRecord[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+export function RecentActivity({
+  tasks,
+  projects,
+  isLoading,
+  error,
+}: RecentActivityProps) {
+  const activities = buildActivities(tasks, projects);
+
   return (
     <Panel aria-labelledby="recent-activity-title">
       <SectionHeader>
         <div>
           <SectionTitle id="recent-activity-title">最近活動</SectionTitle>
-          <SectionDescription>
-            近期專案、任務與客戶溝通的更新紀錄。
-          </SectionDescription>
+          <SectionDescription>近期專案與任務的建立紀錄。</SectionDescription>
         </div>
       </SectionHeader>
 
-      <TimelineList>
-        {recentActivities.map((activity) => (
-          <TimelineRow aria-label={activity.action} key={`${activity.action}-${activity.time}`}>
-            <TimelineMarker aria-hidden="true" />
-            <ActivityDetails>
-              <ActivityAction>{activity.action}</ActivityAction>
-              <ActivityProject>{activity.project}</ActivityProject>
-            </ActivityDetails>
-            <ActivityTime>{activity.time}</ActivityTime>
-            <TypeBadge>{activity.type}</TypeBadge>
-          </TimelineRow>
-        ))}
-      </TimelineList>
+      {isLoading ? (
+        <ActivityProject>載入中…</ActivityProject>
+      ) : error ? (
+        <ActivityProject style={{ color: "#ffb4ad" }}>{error}</ActivityProject>
+      ) : activities.length === 0 ? (
+        <ActivityProject>目前沒有活動紀錄。</ActivityProject>
+      ) : (
+        <TimelineList>
+          {activities.map((activity) => (
+            <TimelineRow aria-label={activity.action} key={activity.id}>
+              <TimelineMarker aria-hidden="true" />
+              <ActivityDetails>
+                <ActivityAction>{activity.action}</ActivityAction>
+                <ActivityProject>{activity.project}</ActivityProject>
+              </ActivityDetails>
+              <ActivityTime>{activity.time}</ActivityTime>
+              <TypeBadge>{activity.type}</TypeBadge>
+            </TimelineRow>
+          ))}
+        </TimelineList>
+      )}
     </Panel>
   );
 }

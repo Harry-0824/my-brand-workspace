@@ -11,108 +11,113 @@ import {
   Item,
   RowBottom,
   Amount,
-  DateText
+  DateText,
 } from "./RevenueInvoiceSummary.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
+import { IncomeRecord } from "../../lib/incomeRecords";
+import { ClientRecord } from "../../lib/clients";
 
-const summaryMetrics = [
-  { label: "本月已收款", value: "$3,200" },
-  { label: "待收款", value: "$4,800" },
-  { label: "已開立發票", value: "5" },
-  { label: "待開立發票", value: "2" }
-] as const;
+const STATUS_DISPLAY: Record<IncomeRecord["status"], string> = {
+  paid: "已收款",
+  pending: "待收款",
+  overdue: "逾期",
+  cancelled: "已取消",
+};
 
-const revenueInvoiceItems = [
-  {
-    client: "Bright Studio",
-    item: "品牌官網重設計首期款",
-    amount: "$2,400",
-    status: "待收款",
-    date: "5 月 24 日"
-  },
-  {
-    client: "FlowMart",
-    item: "電商功能開發尾款",
-    amount: "$2,400",
-    status: "待開立發票",
-    date: "5 月 28 日"
-  },
-  {
-    client: "Northwind Co.",
-    item: "提案製作費",
-    amount: "$800",
-    status: "已開立發票",
-    date: "5 月 18 日"
-  },
-  {
-    client: "Internal",
-    item: "作品集優化",
-    amount: "$0",
-    status: "內部項目",
-    date: "本週"
-  }
-] as const;
+function formatDate(dateString: string | null): string {
+  if (!dateString) return "—";
+  const date = new Date(dateString);
+  return `${date.getMonth() + 1} 月 ${date.getDate()} 日`;
+}
 
-type RevenueStatus = (typeof revenueInvoiceItems)[number]["status"];
+type RevenueInvoiceSummaryProps = {
+  incomeRecords: IncomeRecord[];
+  clients: ClientRecord[];
+  isLoading: boolean;
+  error: string | null;
+};
 
-const statusTone = {
-  待收款: {
-    color: "#f8d98a",
-    border: "rgb(246 200 95 / 0.32)",
-    background: "rgb(246 200 95 / 0.12)"
-  },
-  待開立發票: {
-    color: "#ffb4ad",
-    border: "rgb(255 107 107 / 0.32)",
-    background: "rgb(255 107 107 / 0.12)"
-  },
-  已開立發票: {
-    color: "#a7efc8",
-    border: "rgb(92 207 141 / 0.32)",
-    background: "rgb(92 207 141 / 0.12)"
-  },
-  內部項目: {
-    color: "#b9d6f8",
-    border: "rgb(121 179 255 / 0.32)",
-    background: "rgb(121 179 255 / 0.12)"
-  }
-} as const satisfies Record<RevenueStatus, { color: string; border: string; background: string }>;
+export function RevenueInvoiceSummary({
+  incomeRecords,
+  clients,
+  isLoading,
+  error,
+}: RevenueInvoiceSummaryProps) {
+  const paidTotal = incomeRecords
+    .filter((r) => r.status === "paid")
+    .reduce((sum, r) => sum + r.amount, 0);
+  const pendingTotal = incomeRecords
+    .filter((r) => r.status === "pending" || r.status === "overdue")
+    .reduce((sum, r) => sum + r.amount, 0);
+  const activeCount = incomeRecords.filter(
+    (r) => r.status === "paid" || r.status === "pending"
+  ).length;
+  const overdueCount = incomeRecords.filter((r) => r.status === "overdue").length;
 
-export function RevenueInvoiceSummary() {
+  const recentRecords = [...incomeRecords]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 5);
+
+  const metrics = [
+    { label: "已收款", value: `NT$ ${paidTotal.toLocaleString()}` },
+    { label: "待收款", value: `NT$ ${pendingTotal.toLocaleString()}` },
+    { label: "收款筆數", value: String(activeCount) },
+    { label: "逾期筆數", value: String(overdueCount) },
+  ];
+
   return (
     <DashboardPanel aria-labelledby="revenue-invoice-summary-title">
       <DashboardSectionHeader
         titleId="revenue-invoice-summary-title"
         title="收款概覽"
-        description="掌握本月收入、待收款與發票處理狀態。"
+        description="掌握目前收入、待收款與逾期狀態。"
         withDivider
       />
 
-      <MetricGrid>
-        {summaryMetrics.map((metric) => (
-          <MetricCard key={metric.label}>
-            <MetricLabel>{metric.label}</MetricLabel>
-            <MetricValue>{metric.value}</MetricValue>
-          </MetricCard>
-        ))}
-      </MetricGrid>
+      {isLoading ? (
+        <MetricLabel>載入中…</MetricLabel>
+      ) : error ? (
+        <MetricLabel style={{ color: "#ffb4ad" }}>{error}</MetricLabel>
+      ) : (
+        <>
+          <MetricGrid>
+            {metrics.map((metric) => (
+              <MetricCard key={metric.label}>
+                <MetricLabel>{metric.label}</MetricLabel>
+                <MetricValue>{metric.value}</MetricValue>
+              </MetricCard>
+            ))}
+          </MetricGrid>
 
-      <Rows>
-        {revenueInvoiceItems.map((item) => (
-          <Row key={`${item.client}-${item.item}`} aria-label={item.item}>
-            <RowTop>
-              <Client>{item.client}</Client>
-              <StatusBadge $status={item.status}>{item.status}</StatusBadge>
-            </RowTop>
-            <Item>{item.item}</Item>
-            <RowBottom>
-              <Amount>{item.amount}</Amount>
-              <DateText>{item.date}</DateText>
-            </RowBottom>
-          </Row>
-        ))}
-      </Rows>
+          {recentRecords.length === 0 ? (
+            <MetricLabel>目前沒有收款紀錄。</MetricLabel>
+          ) : (
+            <Rows>
+              {recentRecords.map((record) => {
+                const clientName =
+                  clients.find((c) => c.id === record.client_id)?.name ?? "—";
+                const statusDisplay = STATUS_DISPLAY[record.status];
+                return (
+                  <Row key={record.id} aria-label={record.title}>
+                    <RowTop>
+                      <Client>{clientName}</Client>
+                      <StatusBadge $status={statusDisplay}>
+                        {statusDisplay}
+                      </StatusBadge>
+                    </RowTop>
+                    <Item>{record.title}</Item>
+                    <RowBottom>
+                      <Amount>NT$ {record.amount.toLocaleString()}</Amount>
+                      <DateText>{formatDate(record.due_date)}</DateText>
+                    </RowBottom>
+                  </Row>
+                );
+              })}
+            </Rows>
+          )}
+        </>
+      )}
     </DashboardPanel>
   );
 }

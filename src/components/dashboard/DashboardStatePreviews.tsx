@@ -5,76 +5,79 @@ import {
   StateBadge,
   StateTitle,
   StateDescription,
-  PlaceholderBlock
+  PlaceholderBlock,
 } from "./DashboardStatePreviews.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 
-const stateCards = [
-  {
-    status: "載入中",
-    title: "正在同步工作資料",
-    description: "請稍候，系統正在整理最新的專案、任務與客戶資訊。",
-    type: "loading"
-  },
-  {
-    status: "空資料",
-    title: "目前沒有待處理項目",
-    description: "當你新增專案、任務或客戶後，相關資訊會顯示在這裡。",
-    type: "empty"
-  },
-  {
-    status: "發生錯誤",
-    title: "資料暫時無法載入",
-    description: "請稍後再試，或確認網路連線與服務狀態。",
-    type: "error"
+type DashboardStatePreviewsProps = {
+  isLoading: boolean;
+  hasError: boolean;
+  isEmpty: boolean;
+};
+
+type StateCardConfig = {
+  status: string;
+  title: string;
+  description: string;
+  type: "loading" | "empty" | "error" | "ready";
+};
+
+export function DashboardStatePreviews({
+  isLoading,
+  hasError,
+  isEmpty,
+}: DashboardStatePreviewsProps) {
+  let card: StateCardConfig;
+
+  if (isLoading) {
+    card = {
+      status: "載入中",
+      title: "正在同步工作資料",
+      description: "請稍候，系統正在整理最新的專案、任務與客戶資訊。",
+      type: "loading",
+    };
+  } else if (hasError) {
+    card = {
+      status: "發生錯誤",
+      title: "資料暫時無法載入",
+      description: "請稍後再試，或確認網路連線與服務狀態。",
+      type: "error",
+    };
+  } else if (isEmpty) {
+    card = {
+      status: "空資料",
+      title: "工作區尚無資料",
+      description: "當你新增專案、任務或客戶後，相關資訊會顯示在各儀表板區塊。",
+      type: "empty",
+    };
+  } else {
+    card = {
+      status: "資料已就緒",
+      title: "工作資料已成功載入",
+      description: "所有儀表板區塊已反映最新的專案、任務、客戶與收款資訊。",
+      type: "ready",
+    };
   }
-] as const;
 
-type StateType = (typeof stateCards)[number]["type"];
-
-const cardTone = {
-  loading: {
-    border: "rgb(255 255 255 / 0.08)",
-    badgeColor: "#b9d6f8",
-    badgeBorder: "rgb(121 179 255 / 0.32)",
-    badgeBg: "rgb(121 179 255 / 0.12)"
-  },
-  empty: {
-    border: "rgb(255 255 255 / 0.08)",
-    badgeColor: "#b7c2d0",
-    badgeBorder: "rgb(154 167 183 / 0.28)",
-    badgeBg: "rgb(154 167 183 / 0.1)"
-  },
-  error: {
-    border: "rgb(255 107 107 / 0.2)",
-    badgeColor: "#ffb4ad",
-    badgeBorder: "rgb(255 107 107 / 0.3)",
-    badgeBg: "rgb(255 107 107 / 0.12)"
-  }
-} as const;
-
-export function DashboardStatePreviews() {
   return (
     <DashboardPanel aria-labelledby="dashboard-state-previews-title">
       <DashboardSectionHeader
         titleId="dashboard-state-previews-title"
-        title="狀態預覽"
-        description="定義未來資料載入、空資料與錯誤情境的介面樣式。"
+        title="狀態"
+        description="儀表板資料載入狀態。"
         withDivider
       />
 
       <StateGrid>
-        {stateCards.map((card) => (
-          <StateCard key={card.status} $type={card.type}>
-            <StateHeader>
-              <StateBadge $type={card.type}>{card.status}</StateBadge>
-            </StateHeader>
-            <StateTitle>{card.title}</StateTitle>
-            <StateDescription>{card.description}</StateDescription>
-            <PlaceholderBlock $type={card.type} aria-hidden="true" />
-          </StateCard>
-        ))}
+        <StateCard $type={card.type}>
+          <StateHeader>
+            <StateBadge $type={card.type}>{card.status}</StateBadge>
+          </StateHeader>
+          <StateTitle>{card.title}</StateTitle>
+          <StateDescription>{card.description}</StateDescription>
+          <PlaceholderBlock $type={card.type} aria-hidden="true" />
+        </StateCard>
       </StateGrid>
     </DashboardPanel>
   );
