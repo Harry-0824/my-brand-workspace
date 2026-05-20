@@ -1,4 +1,15 @@
-import styled from "styled-components";
+import {
+  FocusList,
+  FocusItem,
+  FocusTop,
+  Time,
+  StatusBadge,
+  Title,
+  Project,
+  Description,
+  SuggestionBlock,
+  SuggestionText
+} from "./FocusPlan.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 
@@ -76,74 +87,3 @@ export function FocusPlan() {
     </DashboardPanel>
   );
 }
-
-const FocusList = styled.div`
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
-`;
-
-const FocusItem = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const FocusTop = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const Time = styled.p`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.82rem;
-  font-weight: 700;
-`;
-
-const StatusBadge = styled.span<{ $status: FocusStatus }>`
-  padding: 0.25rem 0.5rem;
-  border: 1px solid ${({ $status }) => statusTone[$status].border};
-  border-radius: 999px;
-  color: ${({ $status }) => statusTone[$status].color};
-  background: ${({ $status }) => statusTone[$status].background};
-  font-size: 0.72rem;
-  font-weight: 800;
-`;
-
-const Title = styled.h3`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.98rem;
-  font-weight: 800;
-`;
-
-const Project = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.86rem;
-  font-weight: 700;
-`;
-
-const Description = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.88rem;
-  line-height: 1.7;
-`;
-
-const SuggestionBlock = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: rgb(255 255 255 / 0.025);
-`;
-
-const SuggestionText = styled.p`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.9rem;
-  line-height: 1.7;
-`;

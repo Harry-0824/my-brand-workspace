@@ -1,4 +1,15 @@
-import styled from "styled-components";
+import {
+  ClientGrid,
+  ClientRow,
+  ClientTop,
+  ClientName,
+  StatusBadge,
+  ClientMeta,
+  MetaItem,
+  MetaLabel,
+  MetaValue,
+  NextStepText
+} from "./ClientSummary.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 
@@ -94,71 +105,3 @@ export function ClientSummary() {
     </DashboardPanel>
   );
 }
-
-const ClientGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
-`;
-
-const ClientRow = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const ClientTop = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const ClientName = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1rem;
-  font-weight: 800;
-`;
-
-const StatusBadge = styled.span<{ $status: ClientStatus }>`
-  padding: 0.25rem 0.5rem;
-  border: 1px solid ${({ $status }) => statusTone[$status].border};
-  border-radius: 999px;
-  color: ${({ $status }) => statusTone[$status].color};
-  background: ${({ $status }) => statusTone[$status].background};
-  font-size: 0.72rem;
-  font-weight: 800;
-`;
-
-const ClientMeta = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: ${({ theme }) => theme.spacing.sm};
-  margin-top: ${({ theme }) => theme.spacing.sm};
-`;
-
-const MetaItem = styled.div`
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.xs};
-`;
-
-const MetaLabel = styled.span`
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.78rem;
-  font-weight: 700;
-`;
-
-const MetaValue = styled.span`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.88rem;
-  font-weight: 700;
-`;
-
-const NextStepText = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.88rem;
-  line-height: 1.7;
-`;

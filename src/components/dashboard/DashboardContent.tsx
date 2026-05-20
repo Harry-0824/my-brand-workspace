@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import styled from "styled-components";
+import {
+  MainContent,
+  DashboardIntro,
+  WorkspaceTitle,
+  WorkspaceSubtitle,
+  WorkspaceStatus,
+  SummaryError,
+  PrimaryGrid,
+  LeftColumn,
+  RightColumn
+} from "./DashboardContent.styles";
 import {
   createZeroDashboardSummary,
   fetchDashboardSummaryForCurrentUser
@@ -94,62 +104,3 @@ export function DashboardContent() {
     </MainContent>
   );
 }
-
-const MainContent = styled.main`
-  min-width: 0;
-  display: grid;
-  align-content: start;
-  gap: ${({ theme }) => theme.spacing.xl};
-  padding: ${({ theme }) => theme.spacing.xxl};
-`;
-
-const DashboardIntro = styled.section`
-  padding: ${({ theme }) => theme.spacing.xl} 0 ${({ theme }) => theme.spacing.md};
-`;
-
-const WorkspaceTitle = styled.h1`
-  max-width: 760px;
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 3.2rem;
-  line-height: 1.05;
-`;
-
-const WorkspaceSubtitle = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1.45rem;
-  font-weight: 700;
-`;
-
-const WorkspaceStatus = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 1rem;
-`;
-
-const SummaryError = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: #ffb4ad;
-  font-size: 0.92rem;
-  line-height: 1.65;
-`;
-
-const PrimaryGrid = styled.section`
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: ${({ theme }) => theme.spacing.lg};
-`;
-
-const LeftColumn = styled.div`
-  min-width: 0;
-  display: grid;
-  align-content: start;
-  gap: ${({ theme }) => theme.spacing.lg};
-`;
-
-const RightColumn = styled.div`
-  min-width: 0;
-  display: grid;
-  align-content: start;
-  gap: ${({ theme }) => theme.spacing.lg};
-`;
