@@ -8,6 +8,7 @@ import {
 import { getUserFacingErrorMessage } from "../lib/errorMessages";
 import { AuthPanel } from "../components/auth/AuthPanel";
 import { AppHeader } from "../components/navigation/AppHeader";
+import { BackToTopButton } from "../components/navigation/BackToTopButton";
 import { Sidebar } from "../components/navigation/Sidebar";
 import {
   ContentArea,
@@ -102,6 +103,7 @@ export function AppLayout() {
           authError={authError}
         />
         <Outlet key={authUser?.id ?? "guest"} />
+        <BackToTopButton />
       </ContentArea>
     </LayoutShell>
   );
