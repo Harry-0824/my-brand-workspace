@@ -1,4 +1,12 @@
-﻿import styled from "styled-components";
+import {
+  WeekGrid,
+  WeekCard,
+  WeekDay,
+  WeekItem,
+  WeekMeta,
+  RowTitle,
+  RowMeta
+} from "./CalendarPage.styles";
 import {
   PageDescription,
   PageHeader,
@@ -124,52 +132,7 @@ export function CalendarPage() {
   );
 }
 
-const WeekGrid = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
-
-const WeekCard = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const WeekDay = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.92rem;
-  font-weight: 800;
-`;
-
-const WeekItem = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.88rem;
-  font-weight: 700;
-`;
-
-const WeekMeta = styled.p`
-  margin-top: 0.2rem;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.8rem;
-`;
-
 const List = PageList;
 const ListRow = PageListCard;
-
-const RowTitle = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.9rem;
-  font-weight: 800;
-`;
-
-const RowMeta = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.84rem;
-`;
 
 const Note = PageNote;
