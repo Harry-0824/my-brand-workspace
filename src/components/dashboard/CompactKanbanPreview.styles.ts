@@ -1,27 +1,24 @@
 import styled from "styled-components";
 
-const priorityTone = [
-  {
+type Priority = "高" | "中" | "低";
+
+const priorityTone = {
+  高: {
     color: "#ffb4ad",
     background: "rgb(255 107 107 / 0.1)",
     border: "rgb(255 107 107 / 0.28)"
   },
-  {
+  中: {
     color: "#f8d98a",
     background: "rgb(246 200 95 / 0.1)",
     border: "rgb(246 200 95 / 0.28)"
   },
-  {
+  低: {
     color: "#b7c2d0",
     background: "rgb(154 167 183 / 0.1)",
     border: "rgb(154 167 183 / 0.24)"
   }
-] as const;
-
-const getPriorityTone = (value: string) => {
-  const seed = [...value].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return priorityTone[Math.abs(seed) % priorityTone.length];
-};
+} as const satisfies Record<Priority, { color: string; background: string; border: string }>;
 
 export const SectionHeader = styled.div`
   display: flex;
@@ -117,12 +114,12 @@ export const TaskMeta = styled.div`
   margin-top: ${({ theme }) => theme.spacing.sm};
 `;
 
-export const PriorityBadge = styled.span<{ $priority: string }>`
+export const PriorityBadge = styled.span<{ $priority: Priority }>`
   padding: 0.25rem 0.5rem;
-  border: 1px solid ${({ $priority }) => getPriorityTone($priority).border};
+  border: 1px solid ${({ $priority }) => priorityTone[$priority].border};
   border-radius: 999px;
-  color: ${({ $priority }) => getPriorityTone($priority).color};
-  background: ${({ $priority }) => getPriorityTone($priority).background};
+  color: ${({ $priority }) => priorityTone[$priority].color};
+  background: ${({ $priority }) => priorityTone[$priority].background};
   font-size: 0.72rem;
   font-weight: 800;
 `;

@@ -1,32 +1,29 @@
 import styled from "styled-components";
 
-const statusTone = [
-  {
+type ClientStatus = "合作中" | "開發中" | "待確認" | "內部優化";
+
+const statusTone = {
+  合作中: {
     color: "#a7efc8",
     border: "rgb(92 207 141 / 0.32)",
     background: "rgb(92 207 141 / 0.12)"
   },
-  {
+  開發中: {
     color: "#f8d98a",
     border: "rgb(246 200 95 / 0.32)",
     background: "rgb(246 200 95 / 0.12)"
   },
-  {
+  待確認: {
     color: "#ffb4ad",
     border: "rgb(255 107 107 / 0.32)",
     background: "rgb(255 107 107 / 0.12)"
   },
-  {
+  內部優化: {
     color: "#b9d6f8",
     border: "rgb(121 179 255 / 0.32)",
     background: "rgb(121 179 255 / 0.12)"
   }
-] as const;
-
-const getStatusTone = (value: string) => {
-  const seed = [...value].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return statusTone[Math.abs(seed) % statusTone.length];
-};
+} as const satisfies Record<ClientStatus, { color: string; border: string; background: string }>;
 
 export const ClientGrid = styled.div`
   display: grid;
@@ -55,12 +52,12 @@ export const ClientName = styled.h3`
   font-weight: 800;
 `;
 
-export const StatusBadge = styled.span<{ $status: string }>`
+export const StatusBadge = styled.span<{ $status: ClientStatus }>`
   padding: 0.25rem 0.5rem;
-  border: 1px solid ${({ $status }) => getStatusTone($status).border};
+  border: 1px solid ${({ $status }) => statusTone[$status].border};
   border-radius: 999px;
-  color: ${({ $status }) => getStatusTone($status).color};
-  background: ${({ $status }) => getStatusTone($status).background};
+  color: ${({ $status }) => statusTone[$status].color};
+  background: ${({ $status }) => statusTone[$status].background};
   font-size: 0.72rem;
   font-weight: 800;
 `;
