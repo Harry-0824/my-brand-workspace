@@ -61,6 +61,7 @@ import {
   fetchTasksForCurrentUser,
   updateTaskForCurrentUser
 } from "../lib/tasks";
+import { fetchProjectsForCurrentUser } from "../lib/projects";
 import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -111,6 +112,9 @@ export function TasksPage() {
   const [tasks, setTasks] = useState<Awaited<ReturnType<typeof fetchTasksForCurrentUser>>>(
     []
   );
+  const [projects, setProjects] = useState<
+    Awaited<ReturnType<typeof fetchProjectsForCurrentUser>>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -135,10 +139,12 @@ export function TasksPage() {
 
       try {
         const rows = await fetchTasksForCurrentUser();
+        const projectRows = await fetchProjectsForCurrentUser();
         if (!active) {
           return;
         }
         setTasks(rows);
+        setProjects(projectRows);
       } catch (error) {
         if (!active) {
           return;
@@ -207,6 +213,13 @@ export function TasksPage() {
 
   const hasActiveCriteria =
     keyword.trim().length > 0 || statusFilter !== ALL_FILTER_VALUE;
+
+  const projectNameById = useMemo(
+    () => new Map(projects.map((project) => [project.id, project.name])),
+    [projects]
+  );
+
+  const hasProjects = projects.length > 0;
 
   const summaryMetrics = [
     { label: "總任務數", value: tasks.length.toString() },
@@ -437,17 +450,27 @@ export function TasksPage() {
             />
           </Field>
           <Field className="full-width">
-            <FieldLabel htmlFor="tasks-create-project-id">
-              專案 ID（可留白）
-            </FieldLabel>
-            <FieldInput
+            <FieldLabel htmlFor="tasks-create-project-id">關聯專案</FieldLabel>
+            <FieldSelect
               id="tasks-create-project-id"
               value={formState.project_id}
               onChange={(event) =>
                 updateFormField("project_id", event.target.value)
               }
-              placeholder="若目前沒有專案選單可先留白"
-            />
+              disabled={!hasProjects}
+            >
+              <option value="">未綁定專案</option>
+              {!hasProjects ? (
+                <option value="" disabled>
+                  目前沒有可選專案
+                </option>
+              ) : null}
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </FieldSelect>
           </Field>
           <AddButton type="submit" disabled={isCreating}>
             {isCreating ? "建立中..." : "新增任務"}
@@ -524,7 +547,11 @@ export function TasksPage() {
                     </StatusBadge>
                   </RowTop>
                   <RowMeta>
-                    <MetaText>{item.project_id || "未綁定專案"}</MetaText>
+                    <MetaText>
+                      {item.project_id
+                        ? projectNameById.get(item.project_id) ?? item.project_id
+                        : "未綁定專案"}
+                    </MetaText>
                     <MetaText>
                       {item.priority ? PRIORITY_LABELS[item.priority] : "未設定優先度"}
                     </MetaText>
@@ -626,15 +653,34 @@ export function TasksPage() {
                       </Field>
                       <Field className="full-width">
                         <FieldLabel htmlFor={`tasks-edit-project-id-${item.id}`}>
-                          專案 ID（可留白）
+                          關聯專案
                         </FieldLabel>
-                        <FieldInput
+                        <FieldSelect
                           id={`tasks-edit-project-id-${item.id}`}
                           value={editFormState.project_id}
                           onChange={(event) =>
                             updateEditFormField("project_id", event.target.value)
                           }
-                        />
+                          disabled={!hasProjects}
+                        >
+                          <option value="">未綁定專案</option>
+                          {!hasProjects ? (
+                            <option value="" disabled>
+                              目前沒有可選專案
+                            </option>
+                          ) : null}
+                          {projects.map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {project.name}
+                            </option>
+                          ))}
+                          {editFormState.project_id &&
+                          !projectNameById.has(editFormState.project_id) ? (
+                            <option value={editFormState.project_id}>
+                              {`目前綁定：${editFormState.project_id}`}
+                            </option>
+                          ) : null}
+                        </FieldSelect>
                       </Field>
                       <EditActions>
                         <GhostButton

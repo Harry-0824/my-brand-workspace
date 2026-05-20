@@ -91,6 +91,21 @@ function toFormState(project: ProjectRecord): ProjectFormState {
   };
 }
 
+function getDateRangeError(startDate?: string, dueDate?: string) {
+  const normalizedStartDate = startDate?.trim();
+  const normalizedDueDate = dueDate?.trim();
+
+  if (!normalizedStartDate || !normalizedDueDate) {
+    return null;
+  }
+
+  if (normalizedStartDate > normalizedDueDate) {
+    return "開始日期不可晚於截止日期";
+  }
+
+  return null;
+}
+
 export function ProjectsPage() {
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_FILTER_VALUE);
@@ -114,6 +129,7 @@ export function ProjectsPage() {
     null
   );
   const [actionError, setActionError] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
@@ -239,6 +255,7 @@ export function ProjectsPage() {
   function startEdit(project: ProjectRecord) {
     setActionError(null);
     setActionSuccess(null);
+    setEditError(null);
     setEditingProjectId(project.id);
     setEditFormState(toFormState(project));
   }
@@ -246,6 +263,7 @@ export function ProjectsPage() {
   function cancelEdit() {
     setEditingProjectId(null);
     setEditFormState(initialFormState);
+    setEditError(null);
   }
 
   async function handleCreateProject(event: React.FormEvent<HTMLFormElement>) {
@@ -257,6 +275,12 @@ export function ProjectsPage() {
 
     if (!formState.name.trim()) {
       setCreateError("請輸入專案名稱。");
+      return;
+    }
+
+    const dateRangeError = getDateRangeError(formState.start_date, formState.due_date);
+    if (dateRangeError) {
+      setCreateError(dateRangeError);
       return;
     }
 
@@ -279,11 +303,20 @@ export function ProjectsPage() {
   }
 
   async function handleUpdateProject(projectId: string) {
-    setActionError(null);
+    setEditError(null);
     setActionSuccess(null);
 
     if (!editFormState.name.trim()) {
-      setActionError("請輸入專案名稱後再儲存。");
+      setEditError("請輸入專案名稱後再儲存。");
+      return;
+    }
+
+    const dateRangeError = getDateRangeError(
+      editFormState.start_date,
+      editFormState.due_date
+    );
+    if (dateRangeError) {
+      setEditError(dateRangeError);
       return;
     }
 
@@ -302,7 +335,7 @@ export function ProjectsPage() {
         error instanceof Error
           ? error.message
           : "目前無法更新專案，請稍後再試。";
-      setActionError(getUserFacingErrorMessage(error, message));
+      setEditError(getUserFacingErrorMessage(error, message));
     } finally {
       setIsUpdatingProjectId(null);
     }
@@ -653,6 +686,11 @@ export function ProjectsPage() {
                           {isUpdating ? "儲存中..." : "儲存更新"}
                         </AddButton>
                       </EditActions>
+                      {editError ? (
+                        <InlineError data-testid="projects-edit-error">
+                          {editError}
+                        </InlineError>
+                      ) : null}
                     </EditFormGrid>
                   ) : null}
                 </Row>
