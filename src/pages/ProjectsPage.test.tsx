@@ -196,6 +196,28 @@ describe("ProjectsPage Supabase integration behaviors", () => {
     expect(screen.getAllByTestId("projects-status-badge")).toHaveLength(5);
   });
 
+  it("shows create date validation error near create form and blocks submit", async () => {
+    renderProjectsPage();
+    await waitForRowsToLoad();
+
+    fireEvent.change(screen.getByLabelText("專案名稱"), {
+      target: { value: "日期測試專案" }
+    });
+    fireEvent.change(screen.getByLabelText("開始日期"), {
+      target: { value: "2026-05-25" }
+    });
+    fireEvent.change(screen.getByLabelText("截止日期"), {
+      target: { value: "2026-05-20" }
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "新增專案" }));
+
+    expect(mockCreateProjectForCurrentUser).not.toHaveBeenCalled();
+    expect(screen.getByTestId("projects-create-error")).toHaveTextContent(
+      "開始日期不可晚於截止日期"
+    );
+  });
+
   it("updates the selected project only", async () => {
     renderProjectsPage();
     await waitForRowsToLoad();
@@ -232,6 +254,31 @@ describe("ProjectsPage Supabase integration behaviors", () => {
     });
     expect(screen.getByText("品牌官網改版 V2")).toBeInTheDocument();
     expect(screen.getByText("電商功能開發")).toBeInTheDocument();
+  });
+
+  it("shows edit date validation error inside active edit form and does not leak to create form", async () => {
+    renderProjectsPage();
+    await waitForRowsToLoad();
+
+    const editButtons = screen.getAllByTestId("projects-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    const editStartDateInput = screen.getByLabelText("開始日期", {
+      selector: "input[id^='projects-edit-start-date-']"
+    }) as HTMLInputElement;
+    const editDueDateInput = screen.getByLabelText("截止日期", {
+      selector: "input[id^='projects-edit-due-date-']"
+    }) as HTMLInputElement;
+
+    fireEvent.change(editStartDateInput, { target: { value: "2026-05-25" } });
+    fireEvent.change(editDueDateInput, { target: { value: "2026-05-20" } });
+    fireEvent.click(screen.getByTestId("projects-save-edit-button"));
+
+    expect(mockUpdateProjectForCurrentUser).not.toHaveBeenCalled();
+    expect(screen.getByTestId("projects-edit-error")).toHaveTextContent(
+      "開始日期不可晚於截止日期"
+    );
+    expect(screen.queryByTestId("projects-create-error")).not.toBeInTheDocument();
   });
 
   it("deletes the selected project only", async () => {

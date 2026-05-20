@@ -10,6 +10,8 @@ const mockFetchIncomeRecordsForCurrentUser = vi.fn();
 const mockCreateIncomeRecordForCurrentUser = vi.fn();
 const mockUpdateIncomeRecordForCurrentUser = vi.fn();
 const mockDeleteIncomeRecordForCurrentUser = vi.fn();
+const mockFetchProjectsForCurrentUser = vi.fn();
+const mockFetchClientsForCurrentUser = vi.fn();
 
 vi.mock("../lib/incomeRecords", () => ({
   INCOME_RECORD_STATUS_VALUES: ["pending", "paid", "overdue", "cancelled"],
@@ -21,6 +23,16 @@ vi.mock("../lib/incomeRecords", () => ({
     mockUpdateIncomeRecordForCurrentUser(...args),
   deleteIncomeRecordForCurrentUser: (...args: unknown[]) =>
     mockDeleteIncomeRecordForCurrentUser(...args)
+}));
+
+vi.mock("../lib/projects", () => ({
+  fetchProjectsForCurrentUser: (...args: unknown[]) =>
+    mockFetchProjectsForCurrentUser(...args)
+}));
+
+vi.mock("../lib/clients", () => ({
+  fetchClientsForCurrentUser: (...args: unknown[]) =>
+    mockFetchClientsForCurrentUser(...args)
 }));
 
 const baseRows = [
@@ -72,6 +84,18 @@ afterEach(() => {
 beforeEach(() => {
   vi.clearAllMocks();
   mockFetchIncomeRecordsForCurrentUser.mockResolvedValue(baseRows);
+  mockFetchProjectsForCurrentUser.mockResolvedValue([
+    { id: "project-1", name: "品牌官網重設計" },
+    { id: "project-2", name: "社群行銷專案" },
+    { id: "project-8", name: "短影音企劃" },
+    { id: "project-9", name: "活動頁改版" }
+  ]);
+  mockFetchClientsForCurrentUser.mockResolvedValue([
+    { id: "client-1", name: "Bright Studio" },
+    { id: "client-2", name: "FlowMart" },
+    { id: "client-8", name: "CaseCake" },
+    { id: "client-9", name: "Northwind Co." }
+  ]);
   mockCreateIncomeRecordForCurrentUser.mockImplementation(
     async (input: {
       title: string;
@@ -292,6 +316,42 @@ describe("InvoicesPage income records read/create", () => {
     });
     expect(screen.getByText("網站設計尾款（已調整）")).toBeInTheDocument();
     expect(screen.getByText("品牌顧問月費")).toBeInTheDocument();
+  });
+
+  it("renders project/client selectors with names in create and edit forms", async () => {
+    renderInvoicesPage();
+    await waitForRowsToLoad();
+
+    const createProjectSelect = document.getElementById(
+      "invoices-create-project-id"
+    ) as HTMLSelectElement | null;
+    const createClientSelect = document.getElementById(
+      "invoices-create-client-id"
+    ) as HTMLSelectElement | null;
+
+    expect(createProjectSelect).not.toBeNull();
+    expect(createClientSelect).not.toBeNull();
+    expect(screen.getByRole("option", { name: "未綁定專案" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "未綁定客戶" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "品牌官網重設計" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Bright Studio" })).toBeInTheDocument();
+
+    const editButtons = screen.getAllByTestId("invoices-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    const editProjectSelect = document.getElementById(
+      "invoices-edit-project-id-ir-1"
+    ) as HTMLSelectElement | null;
+    const editClientSelect = document.getElementById(
+      "invoices-edit-client-id-ir-1"
+    ) as HTMLSelectElement | null;
+
+    expect(editProjectSelect).not.toBeNull();
+    expect(editClientSelect).not.toBeNull();
+    expect((editProjectSelect as HTMLSelectElement).value).toBe("project-1");
+    expect((editClientSelect as HTMLSelectElement).value).toBe("client-1");
   });
 
   it("deletes the selected income record only", async () => {

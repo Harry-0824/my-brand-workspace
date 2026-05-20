@@ -10,6 +10,7 @@ const mockFetchTasksForCurrentUser = vi.fn();
 const mockCreateTaskForCurrentUser = vi.fn();
 const mockUpdateTaskForCurrentUser = vi.fn();
 const mockDeleteTaskForCurrentUser = vi.fn();
+const mockFetchProjectsForCurrentUser = vi.fn();
 
 vi.mock("../lib/tasks", () => ({
   TASK_STATUS_VALUES: ["todo", "in_progress", "done", "cancelled"],
@@ -22,6 +23,11 @@ vi.mock("../lib/tasks", () => ({
     mockUpdateTaskForCurrentUser(...args),
   deleteTaskForCurrentUser: (...args: unknown[]) =>
     mockDeleteTaskForCurrentUser(...args)
+}));
+
+vi.mock("../lib/projects", () => ({
+  fetchProjectsForCurrentUser: (...args: unknown[]) =>
+    mockFetchProjectsForCurrentUser(...args)
 }));
 
 const baseRows: TaskRecord[] = [
@@ -64,6 +70,10 @@ afterEach(() => {
 beforeEach(() => {
   vi.clearAllMocks();
   mockFetchTasksForCurrentUser.mockResolvedValue(baseRows);
+  mockFetchProjectsForCurrentUser.mockResolvedValue([
+    { id: "project-1", name: "品牌官網重設計" },
+    { id: "project-9", name: "企業形象頁改版" }
+  ]);
   mockCreateTaskForCurrentUser.mockImplementation(
     async (input: {
       title: string;
@@ -199,7 +209,7 @@ describe("TasksPage Supabase integration behaviors", () => {
     setFieldValue("tasks-create-status", "in_progress");
     setFieldValue("tasks-create-priority", "urgent");
     setFieldValue("tasks-create-due-date", "2026-05-30");
-    setFieldValue("tasks-create-project-id", "");
+    setFieldValue("tasks-create-project-id", "project-1");
 
     const createForm = document.querySelector("form") as HTMLFormElement | null;
     expect(createForm).not.toBeNull();
@@ -214,7 +224,8 @@ describe("TasksPage Supabase integration behaviors", () => {
         title: "Send invoice draft",
         status: "in_progress",
         priority: "urgent",
-        due_date: "2026-05-30"
+        due_date: "2026-05-30",
+        project_id: "project-1"
       })
     );
 
@@ -261,6 +272,32 @@ describe("TasksPage Supabase integration behaviors", () => {
     });
     expect(screen.getByText("Prepare proposal deck v2")).toBeInTheDocument();
     expect(screen.getByText("Client follow-up call")).toBeInTheDocument();
+  });
+
+  it("renders project selector names in create and edit forms", async () => {
+    renderTasksPage();
+    await waitForRowsToLoad();
+
+    const createProjectSelect = document.getElementById(
+      "tasks-create-project-id"
+    ) as HTMLSelectElement | null;
+    expect(createProjectSelect).not.toBeNull();
+    expect(screen.getByRole("option", { name: "未綁定專案" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "品牌官網重設計" })
+    ).toBeInTheDocument();
+
+    const editButtons = screen.getAllByTestId("tasks-edit-button");
+    fireEvent.click(editButtons[0]);
+
+    const editProjectSelect = document.getElementById(
+      "tasks-edit-project-id-t-1"
+    ) as HTMLSelectElement | null;
+    expect(editProjectSelect).not.toBeNull();
+    expect((editProjectSelect as HTMLSelectElement).value).toBe("project-1");
+    expect(
+      screen.getAllByRole("option", { name: "品牌官網重設計" }).length
+    ).toBeGreaterThan(0);
   });
 
   it("deletes the selected task only", async () => {

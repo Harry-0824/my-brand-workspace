@@ -58,6 +58,8 @@ import {
   updateIncomeRecordForCurrentUser,
   type UpdateIncomeRecordInput
 } from "../lib/incomeRecords";
+import { fetchProjectsForCurrentUser } from "../lib/projects";
+import { fetchClientsForCurrentUser } from "../lib/clients";
 import { getUserFacingErrorMessage } from "../lib/errorMessages";
 
 const STATUS_LABELS: Record<IncomeRecordStatus, string> = {
@@ -114,6 +116,12 @@ export function InvoicesPage() {
   const [rows, setRows] = useState<Awaited<ReturnType<typeof fetchIncomeRecordsForCurrentUser>>>(
     []
   );
+  const [projects, setProjects] = useState<
+    Awaited<ReturnType<typeof fetchProjectsForCurrentUser>>
+  >([]);
+  const [clients, setClients] = useState<
+    Awaited<ReturnType<typeof fetchClientsForCurrentUser>>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -138,10 +146,14 @@ export function InvoicesPage() {
 
       try {
         const records = await fetchIncomeRecordsForCurrentUser();
+        const projectRows = await fetchProjectsForCurrentUser();
+        const clientRows = await fetchClientsForCurrentUser();
         if (!active) {
           return;
         }
         setRows(records);
+        setProjects(projectRows);
+        setClients(clientRows);
       } catch (error) {
         if (!active) {
           return;
@@ -212,6 +224,17 @@ export function InvoicesPage() {
 
   const hasActiveCriteria =
     keyword.trim().length > 0 || statusFilter !== ALL_FILTER_VALUE;
+
+  const hasProjects = projects.length > 0;
+  const hasClients = clients.length > 0;
+  const projectNameById = useMemo(
+    () => new Map(projects.map((project) => [project.id, project.name])),
+    [projects]
+  );
+  const clientNameById = useMemo(
+    () => new Map(clients.map((client) => [client.id, client.name])),
+    [clients]
+  );
 
   const totalAmount = rows.reduce((sum, item) => sum + item.amount, 0);
   const paidAmount = rows
@@ -460,26 +483,50 @@ export function InvoicesPage() {
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="invoices-create-project-id">專案 ID（可留白）</FieldLabel>
-            <FieldInput
+            <FieldLabel htmlFor="invoices-create-project-id">關聯專案</FieldLabel>
+            <FieldSelect
               id="invoices-create-project-id"
               value={formState.project_id}
               onChange={(event) =>
                 updateFormField("project_id", event.target.value)
               }
-              placeholder="若目前無專案選單可先留白"
-            />
+              disabled={!hasProjects}
+            >
+              <option value="">未綁定專案</option>
+              {!hasProjects ? (
+                <option value="" disabled>
+                  目前沒有可選專案
+                </option>
+              ) : null}
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </FieldSelect>
           </Field>
           <Field>
-            <FieldLabel htmlFor="invoices-create-client-id">客戶 ID（可留白）</FieldLabel>
-            <FieldInput
+            <FieldLabel htmlFor="invoices-create-client-id">關聯客戶</FieldLabel>
+            <FieldSelect
               id="invoices-create-client-id"
               value={formState.client_id}
               onChange={(event) =>
                 updateFormField("client_id", event.target.value)
               }
-              placeholder="若目前無客戶選單可先留白"
-            />
+              disabled={!hasClients}
+            >
+              <option value="">未綁定客戶</option>
+              {!hasClients ? (
+                <option value="" disabled>
+                  目前沒有可選客戶
+                </option>
+              ) : null}
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name}
+                </option>
+              ))}
+            </FieldSelect>
           </Field>
           <Field className="full-width">
             <FieldLabel htmlFor="invoices-create-notes">備註</FieldLabel>
@@ -570,8 +617,18 @@ export function InvoicesPage() {
                     <MetaText>收款：{formatDate(item.received_date)}</MetaText>
                   </RowMeta>
                   <RowMeta>
-                    <MetaText>專案：{item.project_id || "未綁定"}</MetaText>
-                    <MetaText>客戶：{item.client_id || "未綁定"}</MetaText>
+                    <MetaText>
+                      專案：
+                      {item.project_id
+                        ? projectNameById.get(item.project_id) ?? item.project_id
+                        : "未綁定專案"}
+                    </MetaText>
+                    <MetaText>
+                      客戶：
+                      {item.client_id
+                        ? clientNameById.get(item.client_id) ?? item.client_id
+                        : "未綁定客戶"}
+                    </MetaText>
                   </RowMeta>
                   <NotesText>{item.notes || "未填寫備註"}</NotesText>
 
@@ -676,27 +733,65 @@ export function InvoicesPage() {
                       </Field>
                       <Field>
                         <FieldLabel htmlFor={`invoices-edit-project-id-${item.id}`}>
-                          專案 ID（可留白）
+                          關聯專案
                         </FieldLabel>
-                        <FieldInput
+                        <FieldSelect
                           id={`invoices-edit-project-id-${item.id}`}
                           value={editFormState.project_id}
                           onChange={(event) =>
                             updateEditFormField("project_id", event.target.value)
                           }
-                        />
+                          disabled={!hasProjects}
+                        >
+                          <option value="">未綁定專案</option>
+                          {!hasProjects ? (
+                            <option value="" disabled>
+                              目前沒有可選專案
+                            </option>
+                          ) : null}
+                          {projects.map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {project.name}
+                            </option>
+                          ))}
+                          {editFormState.project_id &&
+                          !projectNameById.has(editFormState.project_id) ? (
+                            <option value={editFormState.project_id}>
+                              {`目前綁定：${editFormState.project_id}`}
+                            </option>
+                          ) : null}
+                        </FieldSelect>
                       </Field>
                       <Field>
                         <FieldLabel htmlFor={`invoices-edit-client-id-${item.id}`}>
-                          客戶 ID（可留白）
+                          關聯客戶
                         </FieldLabel>
-                        <FieldInput
+                        <FieldSelect
                           id={`invoices-edit-client-id-${item.id}`}
                           value={editFormState.client_id}
                           onChange={(event) =>
                             updateEditFormField("client_id", event.target.value)
                           }
-                        />
+                          disabled={!hasClients}
+                        >
+                          <option value="">未綁定客戶</option>
+                          {!hasClients ? (
+                            <option value="" disabled>
+                              目前沒有可選客戶
+                            </option>
+                          ) : null}
+                          {clients.map((client) => (
+                            <option key={client.id} value={client.id}>
+                              {client.name}
+                            </option>
+                          ))}
+                          {editFormState.client_id &&
+                          !clientNameById.has(editFormState.client_id) ? (
+                            <option value={editFormState.client_id}>
+                              {`目前綁定：${editFormState.client_id}`}
+                            </option>
+                          ) : null}
+                        </FieldSelect>
                       </Field>
                       <Field className="full-width">
                         <FieldLabel htmlFor={`invoices-edit-notes-${item.id}`}>
