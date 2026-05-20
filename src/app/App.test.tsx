@@ -85,6 +85,7 @@ describe("Private workspace auth gate", () => {
     expect(screen.getByTestId("auth-submit-button")).toHaveTextContent("登入");
     expect(screen.queryByTestId("auth-mode-signup")).toBeNull();
     expect(screen.queryByRole("navigation", { name: "主要導航" })).toBeNull();
+    expect(screen.queryByTestId("back-to-top-button")).toBeNull();
     expect(screen.queryByRole("heading", { name: "報表" })).toBeNull();
   });
 
