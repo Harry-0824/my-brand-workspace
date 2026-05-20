@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
+import {
+  RowHeader,
+  StatusTitle,
+  StatusCount,
+  RowNote,
+  InlineError,
+  TripletGrid
+} from "./ReportsPage.styles";
 import { DashboardPanel } from "../components/dashboard/shared/DashboardPanel";
 import { DashboardSectionHeader } from "../components/dashboard/shared/DashboardSectionHeader";
 import {
@@ -215,46 +222,6 @@ const MetricLabel = PageMetricLabel;
 const MetricValue = PageMetricValue;
 const List = PageList;
 const ListRow = PageListCard;
-
-const RowHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const StatusTitle = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.92rem;
-  font-weight: 800;
-`;
-
-const StatusCount = styled.p`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 1rem;
-  font-weight: 800;
-`;
-
-const RowNote = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.86rem;
-  line-height: 1.65;
-`;
-
-const InlineError = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.sm};
-  color: #ffb4ad;
-  font-size: 0.92rem;
-  line-height: 1.65;
-`;
-
-const TripletGrid = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-`;
 
 const TripletCard = PageMetricCard;
 

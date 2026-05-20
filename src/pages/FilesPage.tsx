@@ -1,4 +1,11 @@
-﻿import styled from "styled-components";
+import {
+  RowTitle,
+  RowMeta,
+  CategoryGrid,
+  CategoryCard,
+  CategoryTitle,
+  CategoryCount
+} from "./FilesPage.styles";
 import {
   PageDescription,
   PageHeader,
@@ -133,43 +140,5 @@ const MetricLabel = PageMetricLabel;
 const MetricValue = PageMetricValue;
 const List = PageList;
 const ListRow = PageListCard;
-
-const RowTitle = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.9rem;
-  font-weight: 800;
-`;
-
-const RowMeta = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.84rem;
-`;
-
-const CategoryGrid = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.lg};
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const CategoryCard = styled.article`
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.surfaceElevated};
-`;
-
-const CategoryTitle = styled.h3`
-  color: ${({ theme }) => theme.textPrimary};
-  font-size: 0.9rem;
-  font-weight: 800;
-`;
-
-const CategoryCount = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.xs};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.84rem;
-`;
 
 const Note = PageNote;
