@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import { CountText } from "./PageResultCount.styles";
 
 type PageResultCountProps = {
   visible: number;
@@ -19,10 +19,3 @@ export function PageResultCount({
     </CountText>
   );
 }
-
-const CountText = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.84rem;
-  font-weight: 700;
-`;
