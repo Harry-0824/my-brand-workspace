@@ -1,4 +1,3 @@
-import styled from "styled-components";
 import {
   Panel,
   SectionHeader,
@@ -14,22 +13,10 @@ import {
   DueDateGroup,
   MetaLabel,
   DueDate,
+  StateText,
+  ErrorText,
 } from "./ActiveProjects.styles";
 import { type ProjectRecord } from "../../lib/projects";
-
-const StateText = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.md};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 0.92rem;
-  line-height: 1.65;
-`;
-
-const ErrorText = styled.p`
-  margin-top: ${({ theme }) => theme.spacing.md};
-  color: #ffb4ad;
-  font-size: 0.92rem;
-  line-height: 1.65;
-`;
 
 type ProjectTone = "accent" | "warning" | "success";
 

@@ -9,6 +9,7 @@ import {
   ActivityDetails,
   ActivityAction,
   ActivityProject,
+  ActivityError,
   ActivityTime,
   TypeBadge,
 } from "./RecentActivity.styles";
@@ -91,7 +92,7 @@ export function RecentActivity({
       {isLoading ? (
         <ActivityProject>載入中…</ActivityProject>
       ) : error ? (
-        <ActivityProject style={{ color: "#ffb4ad" }}>{error}</ActivityProject>
+        <ActivityError>{error}</ActivityError>
       ) : activities.length === 0 ? (
         <ActivityProject>目前沒有活動紀錄。</ActivityProject>
       ) : (

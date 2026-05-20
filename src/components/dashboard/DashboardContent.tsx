@@ -169,7 +169,12 @@ export function DashboardContent() {
       />
       <OverviewCards summary={summary} isSummaryLoading={isSummaryLoading} />
       <QuickActions />
-      <FocusPlan />
+      <FocusPlan
+        tasks={tasks}
+        projects={projects}
+        isLoading={isDataLoading}
+        error={dataError}
+      />
 
       <PrimaryGrid>
         <LeftColumn>
@@ -178,14 +183,6 @@ export function DashboardContent() {
             isLoading={isDataLoading}
             error={dataError}
           />
-          <CompactKanbanPreview
-            tasks={tasks}
-            isLoading={isDataLoading}
-            error={dataError}
-          />
-        </LeftColumn>
-
-        <RightColumn>
           <UpcomingDeadlines
             projects={projects}
             tasks={tasks}
@@ -207,6 +204,14 @@ export function DashboardContent() {
           <RevenueInvoiceSummary
             incomeRecords={incomeRecords}
             clients={clients}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+        </LeftColumn>
+
+        <RightColumn>
+          <CompactKanbanPreview
+            tasks={tasks}
             isLoading={isDataLoading}
             error={dataError}
           />

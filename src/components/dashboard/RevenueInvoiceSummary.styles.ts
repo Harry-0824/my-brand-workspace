@@ -48,6 +48,10 @@ export const MetricLabel = styled.p`
   font-weight: 700;
 `;
 
+export const ErrorMetricLabel = styled(MetricLabel)`
+  color: #ffb4ad;
+`;
+
 export const MetricValue = styled.p`
   margin-top: ${({ theme }) => theme.spacing.xs};
   color: ${({ theme }) => theme.textPrimary};

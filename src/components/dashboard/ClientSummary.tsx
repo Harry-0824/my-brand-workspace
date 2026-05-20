@@ -8,6 +8,7 @@ import {
   MetaItem,
   MetaLabel,
   MetaValue,
+  ErrorValue,
 } from "./ClientSummary.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
@@ -56,7 +57,7 @@ export function ClientSummary({
       {isLoading ? (
         <MetaValue>載入中…</MetaValue>
       ) : error ? (
-        <MetaValue style={{ color: "#ffb4ad" }}>{error}</MetaValue>
+        <ErrorValue>{error}</ErrorValue>
       ) : clients.length === 0 ? (
         <MetaValue>目前沒有客戶資料。</MetaValue>
       ) : (

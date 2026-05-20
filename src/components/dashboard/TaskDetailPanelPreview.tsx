@@ -6,6 +6,7 @@ import {
   InfoItem,
   InfoLabel,
   InfoValue,
+  ErrorInfoValue,
 } from "./TaskDetailPanelPreview.styles";
 import { TaskRecord } from "../../lib/tasks";
 import { ProjectRecord } from "../../lib/projects";
@@ -70,7 +71,7 @@ export function TaskDetailPanelPreview({
         <InfoGrid>
           <InfoItem>
             <InfoLabel>錯誤</InfoLabel>
-            <InfoValue style={{ color: "#ffb4ad" }}>{error}</InfoValue>
+            <ErrorInfoValue>{error}</ErrorInfoValue>
           </InfoItem>
         </InfoGrid>
       ) : !featuredTask ? (

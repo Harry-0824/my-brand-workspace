@@ -89,6 +89,10 @@ export const MetaValue = styled.span`
   font-weight: 700;
 `;
 
+export const ErrorValue = styled(MetaValue)`
+  color: #ffb4ad;
+`;
+
 export const NextStepText = styled.p`
   margin-top: ${({ theme }) => theme.spacing.sm};
   color: ${({ theme }) => theme.textSecondary};

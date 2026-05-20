@@ -2,6 +2,7 @@ import {
   MetricGrid,
   MetricCard,
   MetricLabel,
+  ErrorMetricLabel,
   MetricValue,
   Rows,
   Row,
@@ -78,7 +79,7 @@ export function RevenueInvoiceSummary({
       {isLoading ? (
         <MetricLabel>載入中…</MetricLabel>
       ) : error ? (
-        <MetricLabel style={{ color: "#ffb4ad" }}>{error}</MetricLabel>
+        <ErrorMetricLabel>{error}</ErrorMetricLabel>
       ) : (
         <>
           <MetricGrid>

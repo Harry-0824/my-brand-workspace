@@ -50,6 +50,10 @@ export const InfoValue = styled.dd`
   font-weight: 800;
 `;
 
+export const ErrorInfoValue = styled(InfoValue)`
+  color: #ffb4ad;
+`;
+
 export const Block = styled.section`
   margin-top: ${({ theme }) => theme.spacing.lg};
 `;
