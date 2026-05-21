@@ -97,6 +97,7 @@ export function DashboardContent() {
       setIsDataLoading(true);
       setDataError(null);
 
+      // Dashboard 各區塊共用同一組 current-user 資料，在父層一次載入可避免子元件重複查詢 Supabase。
       const [projectsResult, tasksResult, clientsResult, incomeResult] =
         await Promise.allSettled([
           fetchProjectsForCurrentUser(),
@@ -122,6 +123,7 @@ export function DashboardContent() {
         setIncomeRecords(incomeResult.value);
       }
 
+      // 使用 allSettled 讓部分資料失敗時仍保留已成功載入的區塊，並用單一友善錯誤提示提醒資料不完整。
       const hasAnyError = [
         projectsResult,
         tasksResult,
@@ -142,6 +144,7 @@ export function DashboardContent() {
     };
   }, []);
 
+  // empty 只代表四個資料來源都成功回傳且皆為空；loading/error 由上方狀態優先處理。
   const isEmpty =
     !isDataLoading &&
     dataError === null &&

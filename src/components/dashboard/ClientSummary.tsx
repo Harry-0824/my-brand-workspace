@@ -17,6 +17,7 @@ import { ClientRecord } from "../../lib/clients";
 type ClientStatusDisplay = "合作中" | "未往來" | "潛在客戶" | "已封存";
 
 function mapClientStatus(status: ClientRecord["status"]): ClientStatusDisplay {
+  // 客戶狀態沿用資料庫 enum，但畫面一律顯示繁中業務語意。
   switch (status) {
     case "active":
       return "合作中";

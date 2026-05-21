@@ -11,6 +11,7 @@ import {
 import { TaskRecord } from "../../lib/tasks";
 import { ProjectRecord } from "../../lib/projects";
 
+// 任務詳情顯示的是資料庫 enum 的繁中版本，避免直接把英文狀態露出到 UI。
 const STATUS_DISPLAY: Record<TaskRecord["status"], string> = {
   todo: "待辦",
   in_progress: "進行中",
@@ -26,6 +27,7 @@ const PRIORITY_DISPLAY: Record<string, string> = {
 };
 
 function selectFeaturedTask(tasks: TaskRecord[]): TaskRecord | null {
+  // 詳情預覽優先呈現正在處理的任務，其次待辦；沒有互動選取狀態時用這個固定規則。
   return (
     tasks.find((t) => t.status === "in_progress") ??
     tasks.find((t) => t.status === "todo") ??

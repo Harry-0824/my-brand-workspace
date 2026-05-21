@@ -30,6 +30,7 @@ const KANBAN_COLUMNS: { status: TaskRecord["status"]; label: string }[] = [
 ];
 
 function mapPriority(priority: TaskRecord["priority"]): KanbanPriority {
+  // 儀表板只需要高/中/低三段提示，因此 urgent 併入高優先度顯示。
   if (priority === "high" || priority === "urgent") return "高";
   if (priority === "medium") return "中";
   return "低";

@@ -36,6 +36,7 @@ function formatDate(dateString: string): string {
 }
 
 function mapTaskPriority(priority: TaskRecord["priority"]): "高" | "中" | "低" {
+  // 專案沒有 priority 欄位；任務的 urgent/high 在期限列表都視為高優先。
   if (priority === "high" || priority === "urgent") return "高";
   if (priority === "medium") return "中";
   return "低";
@@ -48,6 +49,7 @@ function buildDeadlineItems(
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // 即將到期同時吃 projects/tasks 的 due_date；已完成、已封存、已取消資料不再提示。
   const projectItems: DeadlineItem[] = projects
     .filter(
       (p) =>

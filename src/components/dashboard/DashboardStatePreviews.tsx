@@ -30,6 +30,7 @@ export function DashboardStatePreviews({
 }: DashboardStatePreviewsProps) {
   let card: StateCardConfig;
 
+  // 狀態預覽反映 DashboardContent 彙整後的資料狀態，依序判斷 loading、error、empty，否則視為 ready。
   if (isLoading) {
     card = {
       status: "載入中",

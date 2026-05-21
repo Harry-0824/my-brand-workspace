@@ -44,6 +44,7 @@ function buildActivities(
   tasks: TaskRecord[],
   projects: ProjectRecord[]
 ): ActivityItem[] {
+  // 目前 schema 尚無 activity log table，因此最近活動以既有 project/task created_at 推導，作為最小可行版本。
   const taskItems: ActivityItem[] = tasks.map((t) => ({
     id: `task-${t.id}`,
     action: `新增了任務：${t.title}`,

@@ -17,6 +17,7 @@ import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
 import { type ProjectRecord } from "../../lib/projects";
 import { type TaskRecord } from "../../lib/tasks";
 
+// Supabase enum 只在資料層使用，元件內集中轉成繁中顯示文字，避免各處散落狀態文案。
 const STATUS_LABEL: Record<TaskRecord["status"], string> = {
   todo: "待辦",
   in_progress: "進行中",
@@ -47,6 +48,7 @@ type FocusPlanProps = {
 
 function getDueDateRank(dueDate: string | null) {
   if (!dueDate) {
+    // 沒有期限的任務排在有期限任務後面，避免擠掉近期需要處理的項目。
     return Number.POSITIVE_INFINITY;
   }
 
@@ -67,6 +69,7 @@ function getProjectName(task: TaskRecord, projects: ProjectRecord[]) {
     return "獨立任務";
   }
 
+  // project_id 找不到對應專案時也視為獨立任務，避免顯示過期或無法解釋的 ID。
   return projects.find((project) => project.id === task.project_id)?.name ?? "獨立任務";
 }
 
@@ -75,6 +78,7 @@ function getPriorityText(priority: TaskRecord["priority"]) {
 }
 
 function selectFocusTasks(tasks: TaskRecord[]) {
+  // 今日工作重點只挑待推進的任務：in_progress 優先、todo 次之，同狀態下期限越近越前，最多 3 筆。
   return tasks
     .filter((task) => task.status === "in_progress" || task.status === "todo")
     .sort((a, b) => {
@@ -132,6 +136,7 @@ export function FocusPlan({ tasks, projects, isLoading, error }: FocusPlanProps)
             return (
               <FocusItem key={task.id} aria-label="今日工作重點項目">
                 <FocusTop>
+                  {/* 顯示真實 due_date；不產生假時間區間，避免誤導使用者以為已有排程。 */}
                   <Time>{formatDueDate(task.due_date)}</Time>
                   <StatusBadge $status={status}>{status}</StatusBadge>
                 </FocusTop>

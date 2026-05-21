@@ -21,12 +21,14 @@ import { type ProjectRecord } from "../../lib/projects";
 type ProjectTone = "accent" | "warning" | "success";
 
 function getStatusTone(status: ProjectRecord["status"]): ProjectTone {
+  // 資料庫狀態只有四種，視覺 tone 保持三類即可，暫停與封存共用 warning。
   if (status === "active") return "accent";
   if (status === "completed") return "success";
   return "warning";
 }
 
 function getStatusLabel(status: ProjectRecord["status"]): string {
+  // 將 Supabase enum 集中轉成儀表板使用的繁中狀態文字。
   if (status === "active") return "進行中";
   if (status === "paused") return "暫停中";
   if (status === "completed") return "已完成";
