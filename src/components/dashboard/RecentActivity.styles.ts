@@ -74,6 +74,10 @@ export const ActivityProject = styled.p`
   font-size: 0.88rem;
 `;
 
+export const ActivityError = styled(ActivityProject)`
+  color: #ffb4ad;
+`;
+
 export const ActivityTime = styled.p`
   color: ${({ theme }) => theme.textPrimary};
   font-size: 0.9rem;

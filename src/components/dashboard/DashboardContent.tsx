@@ -8,13 +8,26 @@ import {
   SummaryError,
   PrimaryGrid,
   LeftColumn,
-  RightColumn
+  RightColumn,
 } from "./DashboardContent.styles";
 import {
   createZeroDashboardSummary,
-  fetchDashboardSummaryForCurrentUser
+  fetchDashboardSummaryForCurrentUser,
 } from "../../lib/dashboardSummary";
 import { getUserFacingErrorMessage } from "../../lib/errorMessages";
+import {
+  type ProjectRecord,
+  fetchProjectsForCurrentUser,
+} from "../../lib/projects";
+import { type TaskRecord, fetchTasksForCurrentUser } from "../../lib/tasks";
+import {
+  type ClientRecord,
+  fetchClientsForCurrentUser,
+} from "../../lib/clients";
+import {
+  type IncomeRecord,
+  fetchIncomeRecordsForCurrentUser,
+} from "../../lib/incomeRecords";
 import { ActiveProjects } from "./ActiveProjects";
 import { ClientSummary } from "./ClientSummary";
 import { CompactKanbanPreview } from "./CompactKanbanPreview";
@@ -32,6 +45,13 @@ export function DashboardContent() {
   const [summary, setSummary] = useState(createZeroDashboardSummary());
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [tasks, setTasks] = useState<TaskRecord[]>([]);
+  const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [incomeRecords, setIncomeRecords] = useState<IncomeRecord[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -70,6 +90,69 @@ export function DashboardContent() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadData() {
+      setIsDataLoading(true);
+      setDataError(null);
+
+      // Dashboard 各區塊共用同一組 current-user 資料，在父層一次載入可避免子元件重複查詢 Supabase。
+      const [projectsResult, tasksResult, clientsResult, incomeResult] =
+        await Promise.allSettled([
+          fetchProjectsForCurrentUser(),
+          fetchTasksForCurrentUser(),
+          fetchClientsForCurrentUser(),
+          fetchIncomeRecordsForCurrentUser(),
+        ]);
+
+      if (!active) {
+        return;
+      }
+
+      if (projectsResult.status === "fulfilled") {
+        setProjects(projectsResult.value);
+      }
+      if (tasksResult.status === "fulfilled") {
+        setTasks(tasksResult.value);
+      }
+      if (clientsResult.status === "fulfilled") {
+        setClients(clientsResult.value);
+      }
+      if (incomeResult.status === "fulfilled") {
+        setIncomeRecords(incomeResult.value);
+      }
+
+      // 使用 allSettled 讓部分資料失敗時仍保留已成功載入的區塊，並用單一友善錯誤提示提醒資料不完整。
+      const hasAnyError = [
+        projectsResult,
+        tasksResult,
+        clientsResult,
+        incomeResult,
+      ].some((r) => r.status === "rejected");
+      if (hasAnyError) {
+        setDataError("部分資料暫時無法載入，請稍後再試。");
+      }
+
+      setIsDataLoading(false);
+    }
+
+    void loadData();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // empty 只代表四個資料來源都成功回傳且皆為空；loading/error 由上方狀態優先處理。
+  const isEmpty =
+    !isDataLoading &&
+    dataError === null &&
+    projects.length === 0 &&
+    tasks.length === 0 &&
+    clients.length === 0 &&
+    incomeRecords.length === 0;
+
   return (
     <MainContent aria-labelledby="workspace-title">
       <DashboardIntro>
@@ -77,28 +160,74 @@ export function DashboardContent() {
         <WorkspaceSubtitle>單人接案任務管理工作區</WorkspaceSubtitle>
         <WorkspaceStatus>今天先從專案狀態與待辦摘要開始。</WorkspaceStatus>
         {summaryError ? (
-          <SummaryError data-testid="dashboard-summary-error">{summaryError}</SummaryError>
+          <SummaryError data-testid="dashboard-summary-error">
+            {summaryError}
+          </SummaryError>
         ) : null}
       </DashboardIntro>
 
-      <DashboardMvpOverview summary={summary} isSummaryLoading={isSummaryLoading} />
+      <DashboardMvpOverview
+        summary={summary}
+        isSummaryLoading={isSummaryLoading}
+      />
       <OverviewCards summary={summary} isSummaryLoading={isSummaryLoading} />
       <QuickActions />
-      <FocusPlan />
+      <FocusPlan
+        tasks={tasks}
+        projects={projects}
+        isLoading={isDataLoading}
+        error={dataError}
+      />
 
       <PrimaryGrid>
         <LeftColumn>
-          <ActiveProjects />
-          <CompactKanbanPreview />
-          <ClientSummary />
+          <ActiveProjects
+            projects={projects}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+          <UpcomingDeadlines
+            projects={projects}
+            tasks={tasks}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+          <RecentActivity
+            tasks={tasks}
+            projects={projects}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+          <TaskDetailPanelPreview
+            tasks={tasks}
+            projects={projects}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+          <RevenueInvoiceSummary
+            incomeRecords={incomeRecords}
+            clients={clients}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
         </LeftColumn>
 
         <RightColumn>
-          <UpcomingDeadlines />
-          <RecentActivity />
-          <TaskDetailPanelPreview />
-          <RevenueInvoiceSummary />
-          <DashboardStatePreviews />
+          <CompactKanbanPreview
+            tasks={tasks}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+          <ClientSummary
+            clients={clients}
+            isLoading={isDataLoading}
+            error={dataError}
+          />
+          <DashboardStatePreviews
+            isLoading={isDataLoading}
+            hasError={dataError !== null}
+            isEmpty={isEmpty}
+          />
         </RightColumn>
       </PrimaryGrid>
     </MainContent>

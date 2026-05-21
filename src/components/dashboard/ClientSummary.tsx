@@ -8,100 +8,88 @@ import {
   MetaItem,
   MetaLabel,
   MetaValue,
-  NextStepText
+  ErrorValue,
 } from "./ClientSummary.styles";
 import { DashboardPanel } from "./shared/DashboardPanel";
 import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
+import { ClientRecord } from "../../lib/clients";
 
-const clientSummaryItems = [
-  {
-    client: "Bright Studio",
-    status: "合作中",
-    projectCount: "2",
-    lastContact: "今天",
-    nextStep: "確認首頁視覺方向"
-  },
-  {
-    client: "FlowMart",
-    status: "開發中",
-    projectCount: "1",
-    lastContact: "昨天",
-    nextStep: "回報購物車測試結果"
-  },
-  {
-    client: "Northwind Co.",
-    status: "待確認",
-    projectCount: "1",
-    lastContact: "5 月 18 日",
-    nextStep: "等待提案回覆"
-  },
-  {
-    client: "Internal",
-    status: "內部優化",
-    projectCount: "1",
-    lastContact: "本週",
-    nextStep: "整理作品集內容"
+type ClientStatusDisplay = "合作中" | "未往來" | "潛在客戶" | "已封存";
+
+function mapClientStatus(status: ClientRecord["status"]): ClientStatusDisplay {
+  // 客戶狀態沿用資料庫 enum，但畫面一律顯示繁中業務語意。
+  switch (status) {
+    case "active":
+      return "合作中";
+    case "inactive":
+      return "未往來";
+    case "lead":
+      return "潛在客戶";
+    case "archived":
+      return "已封存";
   }
-] as const;
+}
 
-type ClientStatus = (typeof clientSummaryItems)[number]["status"];
+function formatCreatedAt(dateString: string): string {
+  const date = new Date(dateString);
+  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
+}
 
-const statusTone = {
-  合作中: {
-    color: "#a7efc8",
-    border: "rgb(92 207 141 / 0.32)",
-    background: "rgb(92 207 141 / 0.12)"
-  },
-  開發中: {
-    color: "#f8d98a",
-    border: "rgb(246 200 95 / 0.32)",
-    background: "rgb(246 200 95 / 0.12)"
-  },
-  待確認: {
-    color: "#ffb4ad",
-    border: "rgb(255 107 107 / 0.32)",
-    background: "rgb(255 107 107 / 0.12)"
-  },
-  內部優化: {
-    color: "#b9d6f8",
-    border: "rgb(121 179 255 / 0.32)",
-    background: "rgb(121 179 255 / 0.12)"
-  }
-} as const satisfies Record<ClientStatus, { color: string; border: string; background: string }>;
+type ClientSummaryProps = {
+  clients: ClientRecord[];
+  isLoading: boolean;
+  error: string | null;
+};
 
-export function ClientSummary() {
+export function ClientSummary({
+  clients,
+  isLoading,
+  error,
+}: ClientSummaryProps) {
   return (
     <DashboardPanel aria-labelledby="client-summary-title">
       <DashboardSectionHeader
         titleId="client-summary-title"
         title="客戶概覽"
-        description="快速查看目前合作客戶、專案數與追蹤狀態。"
+        description="快速查看目前合作客戶與狀態。"
         withDivider
       />
 
-      <ClientGrid>
-        {clientSummaryItems.map((item) => (
-          <ClientRow key={item.client} aria-label={item.client}>
-            <ClientTop>
-              <ClientName>{item.client}</ClientName>
-              <StatusBadge $status={item.status}>{item.status}</StatusBadge>
-            </ClientTop>
-
-            <ClientMeta>
-              <MetaItem>
-                <MetaLabel>專案數</MetaLabel>
-                <MetaValue>{item.projectCount}</MetaValue>
-              </MetaItem>
-              <MetaItem>
-                <MetaLabel>最近聯絡</MetaLabel>
-                <MetaValue>{item.lastContact}</MetaValue>
-              </MetaItem>
-            </ClientMeta>
-
-            <NextStepText>{item.nextStep}</NextStepText>
-          </ClientRow>
-        ))}
-      </ClientGrid>
+      {isLoading ? (
+        <MetaValue>載入中…</MetaValue>
+      ) : error ? (
+        <ErrorValue>{error}</ErrorValue>
+      ) : clients.length === 0 ? (
+        <MetaValue>目前沒有客戶資料。</MetaValue>
+      ) : (
+        <ClientGrid>
+          {clients.map((client) => {
+            const statusDisplay = mapClientStatus(client.status);
+            return (
+              <ClientRow key={client.id} aria-label={client.name}>
+                <ClientTop>
+                  <ClientName>{client.name}</ClientName>
+                  <StatusBadge $status={statusDisplay}>
+                    {statusDisplay}
+                  </StatusBadge>
+                </ClientTop>
+                <ClientMeta>
+                  {client.company ? (
+                    <MetaItem>
+                      <MetaLabel>公司</MetaLabel>
+                      <MetaValue>{client.company}</MetaValue>
+                    </MetaItem>
+                  ) : null}
+                  <MetaItem>
+                    <MetaLabel>建立於</MetaLabel>
+                    <MetaValue>{formatCreatedAt(client.created_at)}</MetaValue>
+                  </MetaItem>
+                </ClientMeta>
+              </ClientRow>
+            );
+          })}
+        </ClientGrid>
+      )}
     </DashboardPanel>
   );
 }
