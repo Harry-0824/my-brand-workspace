@@ -5,7 +5,7 @@ import {
   CardValue,
   CardDescription
 } from "./OverviewCards.styles";
-import type { DashboardSummary } from "../../lib/dashboardSummary";
+import type { DashboardSummary } from "../../../lib/dashboardSummary";
 
 const overviewCards = [
   {

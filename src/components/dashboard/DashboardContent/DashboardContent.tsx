@@ -13,34 +13,34 @@ import {
 import {
   createZeroDashboardSummary,
   fetchDashboardSummaryForCurrentUser,
-} from "../../lib/dashboardSummary";
-import { getUserFacingErrorMessage } from "../../lib/errorMessages";
+} from "../../../lib/dashboardSummary";
+import { getUserFacingErrorMessage } from "../../../lib/errorMessages";
 import {
   type ProjectRecord,
   fetchProjectsForCurrentUser,
-} from "../../lib/projects";
-import { type TaskRecord, fetchTasksForCurrentUser } from "../../lib/tasks";
+} from "../../../lib/projects";
+import { type TaskRecord, fetchTasksForCurrentUser } from "../../../lib/tasks";
 import {
   type ClientRecord,
   fetchClientsForCurrentUser,
-} from "../../lib/clients";
+} from "../../../lib/clients";
 import {
   type IncomeRecord,
   fetchIncomeRecordsForCurrentUser,
-} from "../../lib/incomeRecords";
-import { ActiveProjects } from "./ActiveProjects";
-import { ClientSummary } from "./ClientSummary";
-import { CompactKanbanPreview } from "./CompactKanbanPreview";
-import { DashboardMvpOverview } from "./DashboardMvpOverview";
-import { DashboardNextAction } from "./DashboardNextAction";
-import { DashboardStatePreviews } from "./DashboardStatePreviews";
-import { FocusPlan } from "./FocusPlan";
-import { OverviewCards } from "./OverviewCards";
-import { QuickActions } from "./QuickActions";
-import { RecentActivity } from "./RecentActivity";
-import { RevenueInvoiceSummary } from "./RevenueInvoiceSummary";
-import { TaskDetailPanelPreview } from "./TaskDetailPanelPreview";
-import { UpcomingDeadlines } from "./UpcomingDeadlines";
+} from "../../../lib/incomeRecords";
+import { ActiveProjects } from "../ActiveProjects";
+import { ClientSummary } from "../ClientSummary";
+import { CompactKanbanPreview } from "../CompactKanbanPreview";
+import { DashboardMvpOverview } from "../DashboardMvpOverview";
+import { DashboardNextAction } from "../DashboardNextAction";
+import { DashboardStatePreviews } from "../DashboardStatePreviews";
+import { FocusPlan } from "../FocusPlan";
+import { OverviewCards } from "../OverviewCards";
+import { QuickActions } from "../QuickActions";
+import { RecentActivity } from "../RecentActivity";
+import { RevenueInvoiceSummary } from "../RevenueInvoiceSummary";
+import { TaskDetailPanelPreview } from "../TaskDetailPanelPreview";
+import { UpcomingDeadlines } from "../UpcomingDeadlines";
 
 export function DashboardContent() {
   const [summary, setSummary] = useState(createZeroDashboardSummary());

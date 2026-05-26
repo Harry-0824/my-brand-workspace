@@ -9,10 +9,10 @@ import {
   FocusList,
   FocusItem
 } from "./DashboardMvpOverview.styles";
-import type { DashboardSummary } from "../../lib/dashboardSummary";
-import { dashboardWeekFocus, dashboardWorkspaceSnapshot } from "./dashboardData";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
+import type { DashboardSummary } from "../../../lib/dashboardSummary";
+import { dashboardWeekFocus, dashboardWorkspaceSnapshot } from "../dashboardData";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { DashboardSectionHeader } from "../shared/DashboardSectionHeader";
 
 type DashboardMvpOverviewProps = {
   summary: DashboardSummary;

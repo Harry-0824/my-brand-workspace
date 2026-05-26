@@ -10,9 +10,9 @@ import {
   MetaValue,
   ErrorValue,
 } from "./ClientSummary.styles";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
-import { ClientRecord } from "../../lib/clients";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { DashboardSectionHeader } from "../shared/DashboardSectionHeader";
+import { ClientRecord } from "../../../lib/clients";
 
 type ClientStatusDisplay = "合作中" | "未往來" | "潛在客戶" | "已封存";
 

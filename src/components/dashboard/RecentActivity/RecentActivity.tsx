@@ -13,8 +13,8 @@ import {
   ActivityTime,
   TypeBadge,
 } from "./RecentActivity.styles";
-import { TaskRecord } from "../../lib/tasks";
-import { ProjectRecord } from "../../lib/projects";
+import { TaskRecord } from "../../../lib/tasks";
+import { ProjectRecord } from "../../../lib/projects";
 
 type ActivityItem = {
   id: string;

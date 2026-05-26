@@ -17,8 +17,8 @@ import {
   StateText,
   ErrorText,
 } from "./CompactKanbanPreview.styles";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { type TaskRecord } from "../../lib/tasks";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { type TaskRecord } from "../../../lib/tasks";
 
 type KanbanPriority = "高" | "中" | "低";
 

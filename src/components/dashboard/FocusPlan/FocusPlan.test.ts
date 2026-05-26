@@ -3,9 +3,9 @@ import { createElement } from "react";
 import { ThemeProvider } from "styled-components";
 import { afterEach, describe, expect, it } from "vitest";
 import { FocusPlan } from "./FocusPlan";
-import { theme } from "../../styles/theme";
-import type { ProjectRecord } from "../../lib/projects";
-import type { TaskRecord } from "../../lib/tasks";
+import { theme } from "../../../styles/theme";
+import type { ProjectRecord } from "../../../lib/projects";
+import type { TaskRecord } from "../../../lib/tasks";
 
 const projects: ProjectRecord[] = [
   {
