@@ -51,11 +51,8 @@ import { DashboardSectionHeader } from "../components/dashboard/shared/Dashboard
 import {
   TASK_PRIORITY_VALUES,
   TASK_STATUS_VALUES,
-  type CreateTaskInput,
   type TaskRecord,
-  type TaskPriority,
   type TaskStatus,
-  type UpdateTaskInput,
   createTaskForCurrentUser,
   deleteTaskForCurrentUser,
   fetchTasksForCurrentUser,
@@ -63,48 +60,14 @@ import {
 } from "../lib/tasks";
 import { fetchProjectsForCurrentUser } from "../lib/projects";
 import { getUserFacingErrorMessage } from "../lib/errorMessages";
-
-const STATUS_LABELS: Record<TaskStatus, string> = {
-  todo: "待處理",
-  in_progress: "進行中",
-  done: "已完成",
-  cancelled: "已取消"
-};
-
-const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  low: "低",
-  medium: "中",
-  high: "高",
-  urgent: "緊急"
-};
-
-type TaskFormState = UpdateTaskInput;
-
-const initialFormState: TaskFormState = {
-  title: "",
-  status: "todo",
-  priority: "",
-  project_id: "",
-  due_date: ""
-};
-
-function toFormState(task: TaskRecord): TaskFormState {
-  return {
-    title: task.title,
-    status: task.status,
-    priority: task.priority ?? "",
-    project_id: task.project_id ?? "",
-    due_date: task.due_date ?? ""
-  };
-}
-
-function formatDueDate(dateValue: string | null) {
-  if (!dateValue) {
-    return "未設定截止日";
-  }
-
-  return dateValue;
-}
+import {
+  STATUS_LABELS,
+  PRIORITY_LABELS,
+  initialFormState,
+  toFormState,
+  formatDueDate,
+  type TaskFormState
+} from "../features/tasks";
 
 export function TasksPage() {
   const [keyword, setKeyword] = useState("");
@@ -428,7 +391,7 @@ export function TasksPage() {
               onChange={(event) =>
                 updateFormField(
                   "priority",
-                  event.target.value as CreateTaskInput["priority"]
+                  event.target.value as TaskFormState["priority"]
                 )
               }
             >
@@ -626,7 +589,7 @@ export function TasksPage() {
                           onChange={(event) =>
                             updateEditFormField(
                               "priority",
-                              event.target.value as CreateTaskInput["priority"]
+                              event.target.value as TaskFormState["priority"]
                             )
                           }
                         >
