@@ -17,8 +17,8 @@ import {
   StateText,
   ErrorText,
 } from "./UpcomingDeadlines.styles";
-import { type ProjectRecord } from "../../lib/projects";
-import { type TaskRecord } from "../../lib/tasks";
+import { type ProjectRecord } from "../../../lib/projects";
+import { type TaskRecord } from "../../../lib/tasks";
 
 type DeadlineItem = {
   id: string;

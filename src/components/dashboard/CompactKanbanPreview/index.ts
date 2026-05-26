@@ -1,0 +1,1 @@
+export { CompactKanbanPreview } from './CompactKanbanPreview';

@@ -8,8 +8,8 @@ import {
   InfoValue,
   ErrorInfoValue,
 } from "./TaskDetailPanelPreview.styles";
-import { TaskRecord } from "../../lib/tasks";
-import { ProjectRecord } from "../../lib/projects";
+import { TaskRecord } from "../../../lib/tasks";
+import { ProjectRecord } from "../../../lib/projects";
 
 // 任務詳情顯示的是資料庫 enum 的繁中版本，避免直接把英文狀態露出到 UI。
 const STATUS_DISPLAY: Record<TaskRecord["status"], string> = {

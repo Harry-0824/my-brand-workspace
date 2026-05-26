@@ -7,8 +7,8 @@ import {
   StateDescription,
   PlaceholderBlock,
 } from "./DashboardStatePreviews.styles";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { DashboardSectionHeader } from "../shared/DashboardSectionHeader";
 
 type DashboardStatePreviewsProps = {
   isLoading: boolean;

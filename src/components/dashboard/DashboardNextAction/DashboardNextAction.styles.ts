@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { DashboardPanel } from "./shared/DashboardPanel";
+import { DashboardPanel } from "../shared/DashboardPanel";
 
 export const NextActionPanel = styled(DashboardPanel)`
   display: flex;

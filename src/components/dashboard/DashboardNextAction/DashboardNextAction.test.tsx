@@ -3,11 +3,11 @@ import { ThemeProvider } from "styled-components";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 import { DashboardNextAction } from "./DashboardNextAction";
-import { theme } from "../../styles/theme";
-import type { ProjectRecord } from "../../lib/projects";
-import type { TaskRecord } from "../../lib/tasks";
-import type { ClientRecord } from "../../lib/clients";
-import type { IncomeRecord } from "../../lib/incomeRecords";
+import { theme } from "../../../styles/theme";
+import type { ProjectRecord } from "../../../lib/projects";
+import type { TaskRecord } from "../../../lib/tasks";
+import type { ClientRecord } from "../../../lib/clients";
+import type { IncomeRecord } from "../../../lib/incomeRecords";
 
 function renderNextAction(
   props: {

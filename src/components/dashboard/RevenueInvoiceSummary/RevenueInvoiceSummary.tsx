@@ -14,10 +14,10 @@ import {
   Amount,
   DateText,
 } from "./RevenueInvoiceSummary.styles";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
-import { IncomeRecord } from "../../lib/incomeRecords";
-import { ClientRecord } from "../../lib/clients";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { DashboardSectionHeader } from "../shared/DashboardSectionHeader";
+import { IncomeRecord } from "../../../lib/incomeRecords";
+import { ClientRecord } from "../../../lib/clients";
 
 const STATUS_DISPLAY: Record<IncomeRecord["status"], string> = {
   paid: "已收款",

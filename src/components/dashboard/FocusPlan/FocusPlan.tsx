@@ -12,10 +12,10 @@ import {
   StateText,
   ErrorText,
 } from "./FocusPlan.styles";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
-import { type ProjectRecord } from "../../lib/projects";
-import { type TaskRecord } from "../../lib/tasks";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { DashboardSectionHeader } from "../shared/DashboardSectionHeader";
+import { type ProjectRecord } from "../../../lib/projects";
+import { type TaskRecord } from "../../../lib/tasks";
 
 // Supabase enum 只在資料層使用，元件內集中轉成繁中顯示文字，避免各處散落狀態文案。
 const STATUS_LABEL: Record<TaskRecord["status"], string> = {

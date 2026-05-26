@@ -1,7 +1,7 @@
-import type { TaskRecord } from "../../lib/tasks";
-import type { ProjectRecord } from "../../lib/projects";
-import type { ClientRecord } from "../../lib/clients";
-import type { IncomeRecord } from "../../lib/incomeRecords";
+import type { TaskRecord } from "../../../lib/tasks";
+import type { ProjectRecord } from "../../../lib/projects";
+import type { ClientRecord } from "../../../lib/clients";
+import type { IncomeRecord } from "../../../lib/incomeRecords";
 import { Link } from "react-router-dom";
 import {
   NextActionPanel,

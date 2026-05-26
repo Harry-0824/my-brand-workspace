@@ -6,9 +6,9 @@ import {
   Tag,
   ActionDescription
 } from "./QuickActions.styles";
-import { dashboardQuickActions } from "./dashboardData";
-import { DashboardPanel } from "./shared/DashboardPanel";
-import { DashboardSectionHeader } from "./shared/DashboardSectionHeader";
+import { dashboardQuickActions } from "../dashboardData";
+import { DashboardPanel } from "../shared/DashboardPanel";
+import { DashboardSectionHeader } from "../shared/DashboardSectionHeader";
 
 export function QuickActions() {
   return (

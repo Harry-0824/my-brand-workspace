@@ -16,7 +16,7 @@ import {
   StateText,
   ErrorText,
 } from "./ActiveProjects.styles";
-import { type ProjectRecord } from "../../lib/projects";
+import { type ProjectRecord } from "../../../lib/projects";
 
 type ProjectTone = "accent" | "warning" | "success";
 
