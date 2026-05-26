@@ -92,6 +92,16 @@ Component.tsx          - 邏輯、JSX、資料處理
 Component.styles.ts    - styled-components 定義
 ```
 
+目前 dashboard 子元件也採用每個功能一個資料夾的結構：
+
+```txt
+src/components/dashboard/ActiveProjects/
+	ActiveProjects.tsx
+	ActiveProjects.styles.ts
+	ActiveProjects.test.tsx
+	index.ts
+```
+
 全域主題 token 位於 `src/styles/theme.ts`，全域基礎樣式位於 `src/styles/GlobalStyle.ts`。
 
 ## AI 工作流程備註
