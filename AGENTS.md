@@ -369,6 +369,28 @@ PR must clearly mention if:
 - The implementation intentionally skipped out-of-scope work
 - Follow-up Issues are needed
 
+## Completion and PR Publishing Checklist
+
+Do not report an implementation task as completed until the branch has been pushed and a pull request has been opened, unless the user explicitly requested local-only work.
+
+Before final response:
+
+- Confirm current branch.
+- Confirm changed files are scoped to the Issue.
+- Run required validation commands.
+- Commit scoped changes.
+- Push the branch to `origin`.
+- Open a PR against `main`.
+- Report PR number, PR URL, branch name, changed files, validation results, and scope check.
+
+If push or PR creation fails, stop and report:
+
+- Exact command attempted.
+- Error output.
+- Current branch.
+- Whether changes are committed.
+- Whether the working tree is clean.
+
 ---
 
 ## Review and Merge Rules
