@@ -32,6 +32,7 @@ import { ActiveProjects } from "./ActiveProjects";
 import { ClientSummary } from "./ClientSummary";
 import { CompactKanbanPreview } from "./CompactKanbanPreview";
 import { DashboardMvpOverview } from "./DashboardMvpOverview";
+import { DashboardNextAction } from "./DashboardNextAction";
 import { DashboardStatePreviews } from "./DashboardStatePreviews";
 import { FocusPlan } from "./FocusPlan";
 import { OverviewCards } from "./OverviewCards";
@@ -165,6 +166,15 @@ export function DashboardContent() {
           </SummaryError>
         ) : null}
       </DashboardIntro>
+
+      <DashboardNextAction
+        tasks={tasks}
+        projects={projects}
+        clients={clients}
+        incomeRecords={incomeRecords}
+        isLoading={isDataLoading}
+        error={dataError}
+      />
 
       <DashboardMvpOverview
         summary={summary}
