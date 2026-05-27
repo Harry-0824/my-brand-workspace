@@ -62,6 +62,7 @@ If there is a conflict, the current GitHub Issue and this file win.
 
 - Follow the current GitHub Issue only.
 - One Issue should solve one task only.
+- Start from the Issue `Suggested Files`.
 - Do not implement features that are not requested in the Issue.
 - Do not perform broad refactors unless explicitly requested.
 - Do not modify unrelated files.
@@ -148,6 +149,7 @@ If a component name contains a business term such as Project, Task, Client, Paym
 
 For Supabase, API, CRUD, or persistence-related Issues:
 
+- Prioritize stable single-user Supabase-backed MVP behavior.
 - Keep changes limited to the target data flow.
 - Do not perform broad modularization or folder restructuring in the same Issue.
 - Avoid rewriting existing page layout unless required for data integration.
@@ -232,7 +234,7 @@ For docs-only changes, run:
 git diff --check
 ```
 
-Then state when build/test were not required.
+Then manually verify the final diff only touches the requested documentation file and state when build/test were not required.
 
 If a command cannot be run, report:
 
@@ -333,7 +335,7 @@ Closes #
 
 -
 
-## How to Test
+## Validation
 
 -
 
@@ -342,6 +344,10 @@ Closes #
 -
 
 ## Out of Scope
+
+-
+
+## Follow-up
 
 -
 
