@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
 export const CreateForm = styled.form`
   margin-top: ${({ theme }) => theme.spacing.lg};
@@ -96,6 +97,20 @@ export const GhostButton = styled.button`
     opacity: 0.65;
     cursor: not-allowed;
   }
+`;
+
+export const DetailLink = styled(Link)`
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgb(98 214 199 / 0.35);
+  border-radius: ${({ theme }) => theme.radius.sm};
+  color: ${({ theme }) => theme.textPrimary};
+  background: rgb(98 214 199 / 0.1);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 0.75rem;
+  text-decoration: none;
 `;
 
 export const DangerButton = styled(GhostButton)`

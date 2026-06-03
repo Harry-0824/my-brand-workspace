@@ -117,6 +117,32 @@ export async function fetchIncomeRecordsForCurrentUser() {
   return ((data ?? []) as IncomeRecordRow[]).map(mapIncomeRecordRow);
 }
 
+export async function fetchIncomeRecordsForProjectForCurrentUser(
+  projectId: string
+) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("income_records")
+    .select(
+      "id, user_id, project_id, client_id, title, amount, status, due_date, received_date, notes, created_at"
+    )
+    .eq("user_id", userId)
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch project income records: ${error.message}`);
+  }
+
+  return ((data ?? []) as IncomeRecordRow[]).map(mapIncomeRecordRow);
+}
+
 export async function createIncomeRecordForCurrentUser(
   input: CreateIncomeRecordInput
 ) {

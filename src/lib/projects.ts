@@ -85,6 +85,30 @@ export async function fetchProjectsForCurrentUser() {
   return (data ?? []) as ProjectRecord[];
 }
 
+export async function fetchProjectForCurrentUser(projectId: string) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select(
+      "id, user_id, name, status, description, client_name, start_date, due_date, created_at"
+    )
+    .eq("id", projectId)
+    .eq("user_id", userId)
+    .limit(1);
+
+  if (error) {
+    throw new Error(`Failed to fetch project: ${error.message}`);
+  }
+
+  return ((data ?? []) as ProjectRecord[])[0] ?? null;
+}
+
 export async function createProjectForCurrentUser(input: CreateProjectInput) {
   const { supabase } = await import("./supabase");
   const userId = await getCurrentUserId();

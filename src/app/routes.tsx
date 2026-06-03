@@ -6,6 +6,7 @@ import { FilesPage } from "../pages/FilesPage";
 import { HelpPage } from "../pages/HelpPage";
 import { InvoicesPage } from "../pages/InvoicesPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
+import { ProjectDetailPage } from "../pages/ProjectDetailPage";
 import { ProjectsPage } from "../pages/ProjectsPage";
 import { ReportsPage } from "../pages/ReportsPage";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -14,6 +15,7 @@ import { TasksPage } from "../pages/TasksPage";
 type AppRoutePath =
   | "/"
   | "/projects"
+  | "/projects/:projectId"
   | "/tasks"
   | "/clients"
   | "/files"
@@ -54,6 +56,14 @@ export const APP_ROUTES: AppRouteMeta[] = [
     showInSidebar: true,
     sidebarSection: "primary",
     element: <ProjectsPage />,
+  },
+  {
+    key: "project-detail",
+    path: "/projects/:projectId",
+    label: null,
+    heading: "專案詳情",
+    showInSidebar: false,
+    element: <ProjectDetailPage />,
   },
   {
     key: "tasks",
@@ -142,7 +152,7 @@ export const SECONDARY_SIDEBAR_ROUTES = APP_ROUTES.filter(
   (r) => r.sidebarSection === "secondary",
 );
 export const ROUTE_HEADING_CASES = APP_ROUTES.filter(
-  (route) => route.path !== "*",
+  (route) => route.path !== "*" && !route.path.includes(":"),
 ).map((route) => ({
   path: route.path,
   heading: route.heading,

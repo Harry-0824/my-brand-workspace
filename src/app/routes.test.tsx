@@ -11,6 +11,7 @@ describe("route metadata guards", () => {
     expect(APP_ROUTES.map((route) => route.path)).toEqual([
       "/",
       "/projects",
+      "/projects/:projectId",
       "/tasks",
       "/clients",
       "/files",
