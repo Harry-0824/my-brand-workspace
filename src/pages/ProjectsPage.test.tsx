@@ -160,6 +160,16 @@ describe("ProjectsPage Supabase integration behaviors", () => {
     expect(reset).toBeDisabled();
   });
 
+  it("provides a detail route link for each project", async () => {
+    renderProjectsPage();
+    await waitForRowsToLoad();
+
+    const detailLinks = screen.getAllByRole("link", { name: "查看詳情" });
+
+    expect(detailLinks).toHaveLength(4);
+    expect(detailLinks[0]).toHaveAttribute("href", "/projects/p-1");
+  });
+
   it("creates a project and prepends it to the list", async () => {
     renderProjectsPage();
     await waitForRowsToLoad();

@@ -23,6 +23,7 @@ import {
   RowBody,
   NextStep,
   RowActions,
+  DetailLink,
   EditFormGrid,
   EditActions
 } from "./ProjectsPage.styles";
@@ -525,6 +526,7 @@ export function ProjectsPage() {
                   <RowActions>
                     {!isEditing ? (
                       <>
+                        <DetailLink to={`/projects/${item.id}`}>查看詳情</DetailLink>
                         <GhostButton
                           type="button"
                           data-testid="projects-edit-button"

@@ -78,6 +78,28 @@ export async function fetchTasksForCurrentUser() {
   return (data ?? []) as TaskRecord[];
 }
 
+export async function fetchTasksForProjectForCurrentUser(projectId: string) {
+  const { supabase } = await import("./supabase");
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("id, user_id, project_id, title, status, priority, due_date, created_at")
+    .eq("user_id", userId)
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch project tasks: ${error.message}`);
+  }
+
+  return (data ?? []) as TaskRecord[];
+}
+
 export async function createTaskForCurrentUser(input: CreateTaskInput) {
   const { supabase } = await import("./supabase");
   const userId = await getCurrentUserId();
