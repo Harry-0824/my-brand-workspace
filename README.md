@@ -85,21 +85,21 @@ VITE_SUPABASE_ANON_KEY=
 
 ## 樣式組織
 
-每個元件皆採用同目錄共置（colocation）慣例：
+較大的元件區塊（例如 dashboard）優先採用「每個功能一個資料夾」的共置結構，把元件、樣式、測試與 index 匯出放在同一層：
 
 ```txt
-Component.tsx          - 邏輯、JSX、資料處理
-Component.styles.ts    - styled-components 定義
+src/components/dashboard/DashboardNextAction/
+    DashboardNextAction.tsx
+    DashboardNextAction.styles.ts
+    DashboardNextAction.test.tsx
+    index.ts
 ```
 
-目前 dashboard 子元件也採用每個功能一個資料夾的結構：
+較小或較簡單的元件，仍可直接在同一層級共置：
 
 ```txt
-src/components/dashboard/ActiveProjects/
-	ActiveProjects.tsx
-	ActiveProjects.styles.ts
-	ActiveProjects.test.tsx
-	index.ts
+Component.tsx
+Component.styles.ts
 ```
 
 全域主題 token 位於 `src/styles/theme.ts`，全域基礎樣式位於 `src/styles/GlobalStyle.ts`。
